@@ -187,7 +187,7 @@ Sie haben gemerkt, dass die Build-Pipeline immer recht viel Zeit in Anspruch nim
 Für Ihr Webtech Projekt wird grundsätzlich folgendes Setting empfohlen.
 
 - Installieren Sie [git](https://git-scm.com/downloads)
-- Installieren Sie das [Python](https://www.python.org/downloads/)
+- Installieren Sie [Python](https://www.python.org/downloads/)
 - Installieren Sie die IDE [Visual Studio Code](https://code.visualstudio.com) inkl. der [Python Extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
 - Installieren Sie auch das Visual Studie Code [Remote Development Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack) (optional, nur falls Sie mit Dev Containern in VSCode arbeiten wollen)
 - Installieren Sie [Lens](https://k8slens.dev/) *(auch wenn dies in diesem Schritt nicht erforderlich ist)*
