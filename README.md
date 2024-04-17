@@ -115,7 +115,7 @@ Sie sollten dann (nach kurzer Synchronisation) Ihren Namespace in dem für Sie b
 3. Ändern Sie nun in der Datei `.gitlab-ci.yml` die Umgebungsvariable `DEPLOY` von `no` auf `yes` (case sensitive!). Damit aktivieren Sie die automatische Deployment-Pipeline. Jeder Push ins Repository wird ab dann die Deployment Pipeline automatisch anstoßen.
 4. Klicken Sie dann in der linken Seitenleiste ihrer WebIDE auf den Git-Reiter (dort sollten die beiden in den Schritten vorher geänderten Dateien als geändert erscheinen).
 5. Klicken Sie dann auf `Commit to main`, um Ihre Änderungen ins Repository zu übertragen.
-6. Vollziehen Sie gerne in Lens und in der [CI/CD Pipeline](-/pipelines) nach, dass Ihre Änderung erfolgreich gepushed wurde und die Build-Pipeline anläuft und durchläuft. Dies kann ein wenig dauern - es passiert jetzt einiges im Hintergrund: Container-Bau, Einrichtung ihres Namespaces, Übertragung des Deployments in den Cluster und Start des Deployments
+6. Vollziehen Sie gerne in Lens und in der [CI/CD Pipeline](../../pipelines) nach, dass Ihre Änderung erfolgreich gepushed wurde und die Build-Pipeline anläuft und durchläuft. Dies kann ein wenig dauern - es passiert jetzt einiges im Hintergrund: Container-Bau, Einrichtung ihres Namespaces, Übertragung des Deployments in den Cluster und Start des Deployments
 
 <details>
 <summary>Lösung</summary>
