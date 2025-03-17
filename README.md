@@ -215,3 +215,5 @@ Lokales Arbeiten:
 ## Aufgabe 4: Transfer (Nicegui)
 
 Versuchen Sie nun, dass Uber Beispiel aus Aufgabe 2 nicht mit Streamlit sondern mit [Nicegui](https://nicegui.io) zu implementieren.
+
+**Keine Angst:** Die Anwendung soll nur lokal, und nicht in einem Docker Container oder gar im Kubernetes Cluster laufen.
