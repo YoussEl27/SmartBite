@@ -212,3 +212,6 @@ Lokales Arbeiten:
 > __Pro Tipp:__ Wenn Sie auf Ihrem Entwicklungssystem Docker und das [VSCode Remote Devolpement Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack) installieren, ist dieses Repo bereits so für Sie vorbereitet, dass Sie automatisch in einem Container inkl. aller Abhängigkeiten entwickeln können. Bestätigen Sie hierzu in VSCode einfach `Reopen in container` oder `Clone in volume`. Dann startet eine in einem Container gebaute Entwicklungsumgebung *(Achtung: der erste Start kann etwas dauern, da erst ein Conainer gebaut werden muss).*
 
 
+## Aufgabe 4: Transfer (Nicegui)
+
+Versuchen Sie nun, dass Uber Beispiel aus Aufgabe 2 nicht mit Streamlit sondern mit [Nicegui](https://nicegui.io) zu implementieren.
