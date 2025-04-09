@@ -94,16 +94,16 @@ Passen Sie daher bitte weder Umgebungsvariablen noch die Deployment-Pipeline an 
 
 ### Schritt 3.2: Installation von Lens
 
-Um einen Einblick in das Deployment auf dem Cluster nehmen zu können, installieren Sie hierzu bitte **lokal** auf Ihrem eigenen Rechner die Kubernetes-IDE [Lens](https://k8slens.dev/). Wenn Sie sich nicht für Lens registrieren möchten, können Sie auch [OpenLens](https://github.com/lensapp/lens) installieren. Dies kann allerdings komplizierter sein, wenn Sie nicht bereits Paketsysteme wie `homebrew` (Mac OS X, Linux) oder `chocolatey`, `scoop` oder `winget` (Windows) installiert haben. Dieses [Repo](https://github.com/MuhammedKalkan/OpenLens) hilft bei der OpenLens Installation. OpenLens bietet auch nicht den kompletten Funktionsumfang auf der Bedienoberfläche an (bspw. Port-Forwarding, Einsichtnahme in Logs usw.).
+Um einen Einblick in das Deployment auf dem Cluster nehmen zu können, installieren Sie hierzu bitte **lokal** auf Ihrem eigenen Rechner die Kubernetes-IDE [Lens](https://k8slens.dev/). Wenn Sie sich nicht für Lens registrieren möchten, können Sie auch [FreeLens](https://freelensapp.github.io/) installieren. FreeLens hat allerdings ein paar Einschränkungen (Container Shell, Log introspection).
 
-![Lens](https://cloudnativenow.com/wp-content/uploads/2020/11/Mirantis-visualize1.png)
+![Lens](https://k8slens.dev/_next/image?url=%2Fimages%2Fhero-home.webp&w=1200&q=95)
 
 Starten Sie Lens und fügen Sie der IDE eine erforderliche `kubeconfig`-Datei hinzu, um auf Ihren Cluster zugreifen zu können. Sie finden diese Datei in den [CI/CD Settings](../../settings/ci_cd) dieses Repositories unter `Variables` unter dem Schlüssel `KUBECONFIG`. 
 
 **Diese persönlichen Zugangsdaten zum Kubernetes Cluster sind vertraulich, nur für diesen Kurs zu nutzen und durch Sie in keinem Falle weiterzugeben.**
 
 1. Kopieren Sie sich in GitLab ([CI/CD Settings](../../settings/ci_cd)) den Inhalt der CI/CD-Variable `KUBECONFIG` in Ihre Zwischenablage (`CTRL-C/CMD-C`).
-2. Starten Sie Lens: `File -> Add Cluster` Kopieren Sie nun den Inhalt aus der Zwischenablage mittels `CTRL-V/CMD-V` hinein.
+2. Starten Sie Lens: `Local Kubeconfigs -> [+] -> Add kubeconfig by pasting` Kopieren Sie nun den Inhalt aus der Zwischenablage mittels `CTRL-V/CMD-V` hinein.
 3. Klicken Sie anschließen auf `Add cluster`.
 
 Sie sollten dann (nach kurzer Synchronisation) Ihren Namespace in dem für Sie bereitgestellten K8s-Cluster sehen. In diesen Namespace deployed die Pipeline Ihre Applikation.

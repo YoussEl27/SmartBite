@@ -24,11 +24,12 @@ credentials:
 
 app-img:
   stage: build
-  image: docker:dind
-  services: ["docker:dind"]
+  image: docker:28-dind
+  services: ["docker:28-dind"]
   rules:
     - if: '$DEPLOY == "yes"'
   script:
+    - docker version
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build -t $CI_REGISTRY_IMAGE/app-$CI_COMMIT_REF_NAME:latest app/
     - docker push $CI_REGISTRY_IMAGE/app-$CI_COMMIT_REF_NAME:latest
