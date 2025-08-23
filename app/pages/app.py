@@ -104,7 +104,7 @@ def show_login():
         with col2:
             signUp_button = st.form_submit_button("Sign Up")
         with clo3:
-            forgot_button = st.form_submit_button("Passwort vergessen")
+            forgot_button = st.form_submit_button("Passwort vergessen?")
 
     if login_button:
         resp = requests.post(
@@ -122,10 +122,12 @@ def show_login():
             st.error("❌ Falscher Benutzername oder Passwort")
 
     if signUp_button:
-        st.info("Sign Up ist noch nicht verfügbar")
+        navigate_to("signUp")
+        st.rerun()
 
     if forgot_button:
-        st.info("🔑 Funktion 'Passwort vergessen' noch nicht implementiert.")
+        navigate_to("passwort_vergessen")
+        st.rerun()
 
 
 def show_home():
@@ -169,15 +171,74 @@ def show_about():
     st.title("Über SmartBite")
     st.write("SmartBite hilft Ihnen, Ihre Ernährung zu tracken und gesündere Entscheidungen zu treffen.")
 
+def show_sign_up():
+    st.title("Neuen Account erstellen")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+    email = st.text_input("Email")
 
-# ---- Hauptlogik ----
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("Sign Up",use_container_width=True, type="secondary"):
+            payload = {
+                "username": username,
+                "password": password,
+                "email": email
+            }
+            try:
+                resp = requests.post("http://127.0.0.1:8000/users/", json=payload)
+                if resp.status_code == 200:
+                    st.success("✅ Account erstellt! Du kannst dich jetzt einloggen.")
+                else:
+                    st.error(f"❌ Fehler: {resp.json()['detail']}")
+            except Exception as e:
+                st.error(f"❌ Verbindung zum Server fehlgeschlagen: {e}")
+
+    with col2:
+        if st.button("Zurück zum Login", use_container_width=True, type="secondary"):
+            navigate_to("login")
+            st.rerun()
+
+def show_forgot_password():
+    st.title("Passwort zurücksetzen")
+    email_input = st.text_input("Email")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("Passwort zurücksetzen", use_container_width=True, type="secondary"):
+            payload = {
+                "email": email_input
+            }
+            try:
+                resp = requests.post("http://127.0.0.1:8000/users/forget_password", json=payload)
+                if resp.status_code == 200:
+                    st.success("✅ Checken Sie bitte Ihre Postfach/Spam ein, um Ihre Passwort zurücksetzen")
+                else:
+                    st.error(f"❌ Fehler: {resp.json()['detail']}")
+            except Exception as e:
+                st.error(f"❌ Verbindung zum Server fehlgeschlagen: {e}")
+
+    with col2:
+        with col2:
+            if st.button("Zurück zum Login", use_container_width=True, type="secondary"):
+                navigate_to("login")
+                st.rerun()
+
+# Hauptlogik
 def main():
     # Navigation rendern (nur wenn eingeloggt)
     render_navigation()
 
     # Aktuelle Seite anzeigen
     if not st.session_state.logged_in:
-        show_login()
+        if st.session_state.page == "login":
+            show_login()
+        elif st.session_state.page == "signUp":
+            show_sign_up()
+        else:
+            show_forgot_password()
     else:
         if st.session_state.page == "home":
             show_home()
@@ -185,7 +246,6 @@ def main():
             show_history()
         elif st.session_state.page == "about":
             show_about()
-
 
 if __name__ == "__main__":
    main()
