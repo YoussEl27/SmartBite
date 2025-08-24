@@ -1,3 +1,28 @@
+from fastapi import FastAPI, Depends, HTTPException, status
+from passlib.context import CryptContext
+from sqlalchemy.orm import Session
+from typing import Annotated
+from pydantic import BaseModel
+from database import SessionLocal, engine
+import psycopg2 as sql
+import models
+import crud
+import schemas
+
+app = FastAPI()
+
+models.Base.metadata.create_all(bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+db_dependency = Annotated[Session, Depends(get_db)]
+
+
 @app.get("/")
 def read_root():
     return {
@@ -50,3 +75,19 @@ def test_db_connection(db: Session = Depends(get_db)):
     except Exception as e:
         return {"db_connection": False, "error": str(e)}
 
+while True:
+    try:
+        conn = sql.connect(
+            database="postgres",
+            user="postgres",
+            host="localhost",
+            password="Ysf@2002",
+            port="5432",
+        )
+        cursor = conn.cursor()
+        print("Successfully!")
+        break
+
+    except Exception as e:
+        print("Not Successfull!")
+        break
