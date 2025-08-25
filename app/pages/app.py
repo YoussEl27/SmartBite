@@ -15,6 +15,8 @@ if "page" not in st.session_state:
     st.session_state.page = "login"
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+if "access_token" not in st.session_state:
+    st.session_state["access_token"] = None
 
 
 # API
@@ -24,7 +26,8 @@ def get_nutrition_info(food_name):
         "search_terms": food_name,
         "search_simple": 1,
         "action": "process",
-        "json": 1
+        "json": 1,
+        "page_size": 3
     }
 
     try:
@@ -35,12 +38,13 @@ def get_nutrition_info(food_name):
             first = data["products"][0]
             nutriments = first.get("nutriments", {})
             return {
-                "Name": first.get("product_name", "Unbekannt"),
-                "Kalorien (pro 100g)": nutriments.get("energy-kcal_100g", "Keine Angabe"),
-                "Fett (g)": nutriments.get("fat_100g", "Keine Angabe"),
-                "Eiweiß (g)": nutriments.get("proteins_100g", "Keine Angabe"),
-                "Zucker (g)": nutriments.get("sugars_100g", "Keine Angabe"),
-                "Salz (g)": nutriments.get("salt_100g", "Keine Angabe")
+                "Meal_name"    : first.get("product_name", "Unknown"),
+                "Calories": nutriments.get("energy-kcal_100g", "Not specified"),
+                "Protein": nutriments.get("proteins_100g", "Not specified"),
+                "Carbs": nutriments.get("carbohydrates_100g", "Not specified"),
+                "Fat"     : nutriments.get("fat_100g", "Not specified"),
+                "Sugar"   : nutriments.get("sugars_100g", "Not specified"),
+                "Salt"    : nutriments.get("salt_100g", "Not specified"),
             }
     except:
         pass
@@ -89,7 +93,6 @@ def render_navigation():
             st.rerun()
 
 
-
 # ---- Seitenfunktionen ----
 def show_login():
     st.title("Willkommen bei SmartBite")
@@ -107,19 +110,28 @@ def show_login():
             forgot_button = st.form_submit_button("Passwort vergessen?")
 
     if login_button:
-        resp = requests.post(
-            url="http://127.0.0.1:8000/login",
-            json={"username": username, "password": password}
-        )
-        data = resp.json()
-        if data["success"]:
-            st.session_state.logged_in = True
-            st.success("✅ Erfolgreich eingeloggt!")
-            st.session_state.page = "home"
-            st.rerun()
-        else:
-            st.session_state.login_success = False
-            st.error("❌ Falscher Benutzername oder Passwort")
+        try:
+            resp = requests.post(
+                url="http://127.0.0.1:8000/login",
+                json={"username": username, "password": password},
+                timeout=5
+            )
+            st.write("Login Response:", resp.status_code, resp.json())
+            if resp.status_code == 200:
+                data = resp.json()
+                token = data.get("access_token")
+                if token:
+                    st.session_state["access_token"] = token
+                    st.session_state["logged_in"] = True
+                    st.success("✅ Erfolgreich eingeloggt!")
+                    st.session_state["page"] = "home"
+                    st.rerun()
+                else:
+                    st.error("❌ Falscher Benutzername oder Passwort")
+            else:
+                st.error("❌ Username existiert nicht oder Passwort falsch")
+        except requests.exceptions.RequestException:
+            st.error("❌ Verbindung zum Server fehlgeschlagen")
 
     if signUp_button:
         navigate_to("signUp")
@@ -135,14 +147,49 @@ def show_home():
 
     food_query = st.text_input("Was hast du gegessen?")
 
+    if "nutrition_result" not in st.session_state:
+        st.session_state.nutrition_result = None
+
     if st.button("Nährwerte anzeigen"):
         result = get_nutrition_info(food_query)
         if result:
-            st.subheader("Nährwertangaben:")
-            for key, value in result.items():
-                st.write(f"**{key}**: {value}")
+            st.session_state.nutrition_result = result
         else:
             st.warning("Keine passenden Daten gefunden.")
+
+    if st.session_state.nutrition_result:
+        result = st.session_state.nutrition_result
+        st.subheader("Nährwertangaben:")
+
+        st.header(f"{result['Meal_name']}")
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Calories", f"{result['Calories']} kcal")
+        col1.metric("Protein", f"{result['Protein']} g")
+        col2.metric("Carbs", f"{result['Carbs']} g")
+        col2.metric("Fett", f"{result['Fat']} g")
+        col3.metric("Sugar", f"{result['Sugar']} g")
+        col3.metric("Salt", f"{result['Salt']} g")
+
+        if st.button("Meal speichern", type="secondary"):
+            if "access_token" not in st.session_state:
+                st.session_state["access_token"] = None
+            if st.session_state["access_token"]:
+                headers = {"Authorization": f"Bearer {st.session_state['access_token']}"}
+
+                try:
+                    response = requests.post(
+                        url="http://127.0.0.1:8000/history",
+                        json=result,
+                        headers=headers
+                    )
+                    if response.status_code == 200:
+                        st.success("✅ Mahlzeit wurde gespeichert!")
+                    else:
+                        st.error("❌ Fehler beim Speichern. Bitte erneut versuchen.")
+                except requests.exceptions.RequestException:
+                    st.error("❌ Verbindung zum Server fehlgeschlagen.")
+            else:
+                st.warning("Bitte zuerst einloggen, um Mahlzeiten zu speichern.")
 
 
 def show_history():
@@ -226,12 +273,11 @@ def show_forgot_password():
                 navigate_to("login")
                 st.rerun()
 
-# Hauptlogik
+
 def main():
-    # Navigation rendern (nur wenn eingeloggt)
     render_navigation()
 
-    # Aktuelle Seite anzeigen
+
     if not st.session_state.logged_in:
         if st.session_state.page == "login":
             show_login()

@@ -1,10 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException, status
+from gitdb.util import exists
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from typing import Annotated
 from pydantic import BaseModel
-from database import SessionLocal, engine
-import psycopg2 as sql
+from database import SessionLocal, engine, get_db
+from auth import get_current_user, create_access_token
 import models
 import crud
 import schemas
@@ -13,52 +14,37 @@ app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 db_dependency = Annotated[Session, Depends(get_db)]
 
-
-@app.get("/")
-def read_root():
-    return {
-        "message": "✅ SmartBite API läuft!",
-        "endpoints": [
-            "GET /test-db",
-            "POST /login",
-            "POST /users",
-            "GET /docs"
-        ]
-    }
 
 class LoginData(BaseModel):
     username: str
     password: str
 
-class UserBase(BaseModel):
-    username: str
-    password: str
-    email: str
-
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 @app.post("/login")
-def login(data: LoginData, db: Session = Depends(get_db)):
+async def login(data: LoginData, db: db_dependency):
     user = db.query(models.User).filter(models.User.username == data.username).first()
     if not user:
         raise HTTPException(status_code=400, detail="Benutzer nicht gefunden")
     if not pwd_context.verify(data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Falsches Passwort")
 
-    return {"success": True, "message": "Login erfolgreich", "user_id": user.id}
+    access_token = create_access_token({"sub": user.username})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+def authenticate_user(username: str, password: str, db: db_dependency):
+    user = db.query(models.User).filter(models.User.username == username).first()
+    if not user:
+        return False
+    if not pwd_context.verify(password, user.password_hash):
+        return False
+    return user
 
 @app.post("/users")
-def create_user(user: UserBase, db: db_dependency):
+async def create_user(user: schemas.UserBase, db: db_dependency):
     existing_user = db.query(models.User).filter(
         (models.User.username == user.username) |
         (models.User.email == user.email)
@@ -67,27 +53,11 @@ def create_user(user: UserBase, db: db_dependency):
         raise HTTPException(status_code=400, detail="Username oder Email existiert schon")
     return crud.create_user(db, user)
 
-@app.get("/test-db")
-def test_db_connection(db: Session = Depends(get_db)):
-    try:
-        result = db.execute("SELECT 1").scalar()
-        return {"db_connection": True, "result": result}
-    except Exception as e:
-        return {"db_connection": False, "error": str(e)}
+@app.post("/history")
+async def create_history(history: schemas.HistoryCreate, db: db_dependency, current_user: models.User = Depends(get_current_user)):
+    return crud.create_history(db, user_id= current_user.id, history=history)
 
-while True:
-    try:
-        conn = sql.connect(
-            database="postgres",
-            user="postgres",
-            host="localhost",
-            password="Ysf@2002",
-            port="5432",
-        )
-        cursor = conn.cursor()
-        print("Successfully!")
-        break
+@app.get("/history/user/{id}")
+async def get_history(db: db_dependency, current_user: models.User = Depends(get_current_user)):
+    return crud.get_histories_by_user(db, user_id= current_user.id)
 
-    except Exception as e:
-        print("Not Successfull!")
-        break

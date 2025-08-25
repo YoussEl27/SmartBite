@@ -23,11 +23,20 @@ def get_users(db: Session):
     return db.query(models.User).all()
 
 def create_history(db: Session, user_id: int, history: schemas.HistoryCreate):
-    db_history = models.History(user_id=user_id, **history.dict())
+    db_history = models.History(
+        user_id=user_id,
+        meal_name=history.meal_name,
+        calories=history.calories,
+        protein=history.protein,
+        carbs=history.carbs,
+        fat=history.fat,
+        sugar=history.sugar,
+        salt=history.salt
+    )
     db.add(db_history)
     db.commit()
     db.refresh(db_history)
     return db_history
 
-def get_history(db: Session, history_id: int):
-    return db.query(models.History).filter(models.History.id == history_id).first()
+def get_histories_by_user(db: Session, user_id: int):
+    return db.query(models.History).filter(models.History.user_id == user_id).all()
