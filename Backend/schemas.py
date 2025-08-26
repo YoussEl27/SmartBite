@@ -3,14 +3,13 @@ from datetime import datetime
 from typing import List
 
 class HistoryBase(BaseModel):
-    meal_name: str
-    calories: int
-    protein: int
-    carbs: int
-    fat: int
-    sugar: int
-    salt: int
-
+    Meal_name: str
+    Calories: float
+    Protein: float
+    Carbs: float
+    Fat: float
+    Sugar: float
+    Salt: float
 class HistoryCreate(HistoryBase):
     pass
 

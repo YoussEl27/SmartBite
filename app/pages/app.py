@@ -50,17 +50,6 @@ def get_nutrition_info(food_name):
         pass
     return None
 
-#Demo Data für History
-def load_data():
-    return pd.DataFrame([
-        {"Gericht": "Spaghetti Carbonara", "Kalorien": 520,
-         "Protein": 25, "Kohlenhydrate": 45, "Fett": 28, "Notizen": "Speck knuspriger braten!"},
-        {"Gericht": "Chili sin Carne", "Kalorien": 380,
-         "Protein": 18, "Kohlenhydrate": 52, "Fett": 12, "Notizen": "Perfekt scharf!"},
-        {"Gericht": "Pfannkuchen", "Kalorien": 280,
-         "Protein": 8, "Kohlenhydrate": 38, "Fett": 10, "Notizen": "Nächstes Mal mehr Vanille."},
-    ])
-
 
 # Navigationsfunktionen
 def navigate_to(page_name):
@@ -116,7 +105,7 @@ def show_login():
                 json={"username": username, "password": password},
                 timeout=5
             )
-            st.write("Login Response:", resp.status_code, resp.json())
+            #st.write("Login Response:", resp.status_code, resp.json())
             if resp.status_code == 200:
                 data = resp.json()
                 token = data.get("access_token")
@@ -172,9 +161,13 @@ def show_home():
 
         if st.button("Meal speichern", type="secondary"):
             if "access_token" not in st.session_state:
-                st.session_state["access_token"] = None
+                st.warning("❌ Bitte zuerst einloggen, um Mahlzeiten zu speichern.")
+                return
             if st.session_state["access_token"]:
-                headers = {"Authorization": f"Bearer {st.session_state['access_token']}"}
+                headers = {
+                    "Authorization": f"Bearer {st.session_state['access_token']}",
+                    "Content-Type": "application/json"
+                }
 
                 try:
                     response = requests.post(
@@ -191,28 +184,52 @@ def show_home():
             else:
                 st.warning("Bitte zuerst einloggen, um Mahlzeiten zu speichern.")
 
-
 def show_history():
     st.title("🍽️ Meine Gerichte-history")
+    if "access_token" not in st.session_state:
+        st.warning("❌ Bitte zuerst einloggen, um Mahlzeiten zu speichern.")
+        return
+    if st.session_state["access_token"]:
+        headers = {
+            "Authorization": f"Bearer {st.session_state['access_token']}",
+            "Content-Type": "application/json"
+        }
+        try:
+            response = requests.get(
+                url="http://127.0.0.1:8000/history/",
+                headers=headers
+            )
+            if response.status_code == 200:
+                #st.write("Response:", response.status_code, response.json())
+                data = response.json()
+                if len(data) == 0:
+                    st.info("Noch keine Gerichte gespeichert.")
+                    return
+                df = pd.DataFrame(data)
+            else:
+                st.error(f"Fehler beim Laden der History: {response.status_code}")
+                return
+        except requests.exceptions.RequestException:
+            st.error("❌ Verbindung zum Server fehlgeschlagen.")
 
-    df = load_data()
 
     st.subheader("📋 Meine Gerichte")
     for index, row in df.iterrows():
-        with st.expander(f"🍴 {row['Gericht']} - 🔥 {row['Kalorien']} kcal"):
-            st.subheader(row['Gericht'])
+        with st.expander(f"🍴 {row['meal_name']} - 🔥 {row['calories']} kcal"):
+            st.subheader(row['meal_name'])
 
             # Nährwert-Karte
-            col1, col2, col3, col4 = st.columns(4)
+            col1, col2, col3, col4, col5 = st.columns(5)
             with col1:
-                st.metric("Kalorien", f"{row['Kalorien']} kcal")
+                st.metric("Calories", f"{row['calories']} kcal")
             with col2:
-                st.metric("Protein", f"{row['Protein']}g")
+                st.metric("Protein", f"{row['protein']}g")
             with col3:
-                st.metric("Carbs", f"{row['Kohlenhydrate']}g")
+                st.metric("Carbs", f"{row['carbs']}g")
             with col4:
-                st.metric("Fett", f"{row['Fett']}g")
-
+                st.metric("Fat", f"{row['fat']}g")
+            with col5:
+                st.metric("Sugar", f"{row['sugar']}g")
 
 def show_about():
     st.title("Über SmartBite")

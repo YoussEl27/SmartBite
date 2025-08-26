@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from gitdb.util import exists
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from typing import Annotated
+from typing import Annotated, List
 from pydantic import BaseModel
 from database import SessionLocal, engine, get_db
 from auth import get_current_user, create_access_token
@@ -57,7 +57,7 @@ async def create_user(user: schemas.UserBase, db: db_dependency):
 async def create_history(history: schemas.HistoryCreate, db: db_dependency, current_user: models.User = Depends(get_current_user)):
     return crud.create_history(db, user_id= current_user.id, history=history)
 
-@app.get("/history/user/{id}")
+@app.get("/history/")
 async def get_history(db: db_dependency, current_user: models.User = Depends(get_current_user)):
     return crud.get_histories_by_user(db, user_id= current_user.id)
 

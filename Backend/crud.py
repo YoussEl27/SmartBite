@@ -25,13 +25,13 @@ def get_users(db: Session):
 def create_history(db: Session, user_id: int, history: schemas.HistoryCreate):
     db_history = models.History(
         user_id=user_id,
-        meal_name=history.meal_name,
-        calories=history.calories,
-        protein=history.protein,
-        carbs=history.carbs,
-        fat=history.fat,
-        sugar=history.sugar,
-        salt=history.salt
+        meal_name=history.Meal_name,
+        calories=history.Calories,
+        protein=history.Protein,
+        carbs=history.Carbs,
+        fat=history.Fat,
+        sugar=history.Sugar,
+        salt=history.Salt
     )
     db.add(db_history)
     db.commit()
