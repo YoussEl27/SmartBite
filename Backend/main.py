@@ -1,5 +1,4 @@
 from fastapi import FastAPI, Depends, HTTPException, status
-from gitdb.util import exists
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from typing import Annotated, List
@@ -34,14 +33,6 @@ async def login(data: LoginData, db: db_dependency):
 
     access_token = create_access_token({"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer"}
-
-def authenticate_user(username: str, password: str, db: db_dependency):
-    user = db.query(models.User).filter(models.User.username == username).first()
-    if not user:
-        return False
-    if not pwd_context.verify(password, user.password_hash):
-        return False
-    return user
 
 @app.post("/users")
 async def create_user(user: schemas.UserBase, db: db_dependency):

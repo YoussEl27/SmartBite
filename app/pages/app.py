@@ -230,6 +230,8 @@ def show_history():
                 st.metric("Fat", f"{row['fat']}g")
             with col5:
                 st.metric("Sugar", f"{row['sugar']}g")
+            #with col6:
+             #   st.metric("Salt", f"{row['salt']}g")
 
 def show_about():
     st.title("Über SmartBite")
