@@ -51,26 +51,24 @@ build-frontend:
 
 deploy-backend:
   stage: deploy
-  image: bitnami/kubectl:latest
+  image: lachlanevenson/k8s-kubectl:latest
   script:
-    - kubectl apply -f deploy/backend/deployment.yaml -n $K8S_NAMESPACE
-    - kubectl apply -f deploy/backend/service.yaml -n $K8S_NAMESPACE
-    - kubectl rollout status deployment/backend -n $K8S_NAMESPACE --timeout=120s
+    - /bin/bash -c "kubectl apply -f deploy/backend/deployment.yaml -n $K8S_NAMESPACE"
+    - /bin/bash -c "kubectl apply -f deploy/backend/service.yaml -n $K8S_NAMESPACE"
+    - /bin/bash -c "kubectl rollout status deployment/backend -n $K8S_NAMESPACE --timeout=120s"
 
 deploy-frontend:
   stage: deploy
-  image: bitnami/kubectl:latest
+  image: lachlanevenson/k8s-kubectl:latest
   script:
-    - kubectl apply -f deploy/frontend/deployment.yaml -n $K8S_NAMESPACE
-    - kubectl apply -f deploy/frontend/service.yaml -n $K8S_NAMESPACE
-    - kubectl apply -f deploy/frontend/ingress.yaml -n $K8S_NAMESPACE
-    - kubectl rollout status deployment/frontend -n $K8S_NAMESPACE --timeout=120s
+    - /bin/bash -c "kubectl apply -f deploy/frontend/deployment.yaml -n $K8S_NAMESPACE"
+    - /bin/bash -c "kubectl apply -f deploy/frontend/service.yaml -n $K8S_NAMESPACE"
+    - /bin/bash -c "kubectl rollout status deployment/frontend -n $K8S_NAMESPACE --timeout=120s"
 
 deploy-ingress:
   stage: deploy
-  image: bitnami/kubectl:latest
+  image: lachlanevenson/k8s-kubectl:latest
   script:
-    - echo "🌐 Aktualisiere Ingress..."
-    - kubectl apply -f deploy/project-ing.yaml -n $K8S_NAMESPACE
+    - /bin/bash -c "kubectl apply -f deploy/frontend/ingress.yaml -n $K8S_NAMESPACE"
   only:
     - main
