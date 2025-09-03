@@ -59,7 +59,7 @@ deploy-backend:
   script:
     - mo deploy/backend/backend_deployment.yaml | kubectl delete -f - || true
     - mo deploy/backend/backend_deployment.yaml | kubectl apply -f -
-    - mo apply -f deploy/backend/backend_service.yaml | kubectl apply -f -
+    - mo deploy/backend/backend_service.yaml | kubectl apply -f -
 
 deploy-frontend:
   stage: deploy
