@@ -47,7 +47,12 @@ build-frontend:
   services:
     - docker:24.0-dind
 
-
+test-kubectl:
+  stage: deploy
+  image: bitnami/kubectl:1.27.2
+  script:
+    - echo "Teste kubectl..."
+    - kubectl version --client
 
 deploy-backend:
   stage: deploy
