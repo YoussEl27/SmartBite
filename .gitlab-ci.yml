@@ -16,7 +16,7 @@ prepare:
     stage: prepare
     script:
         - kubectl delete secret gitlab-registry-credentials || true
-        - "kubectl create secret docker-registry gitlab-registry-$CI_PROJECT_ID \
+        - "kubectl create secret docker-registry gitlab-registry-credentials \
                     --docker-server=$CI_REGISTRY \
                     --docker-username=image-registry \ 
                     --docker-password=$CI_REGISTRY_TOKEN"
