@@ -15,7 +15,7 @@ spec:
         app: backend
     spec:
       imagePullSecrets:
-        - name: gitlab-registry-secret
+        - name: gitlab-registry-{{ CI_PROJECT_ID }}
       containers:
         - name: backend
           image: git.mylab.th-luebeck.de:4181/webtech/ss2025/youssef-elkettani/backend:latest
