@@ -54,7 +54,7 @@ deploy-backend:
   image: bitnami/kubectl:latest
   script:
     - echo "🚀 Deploye Backend zu Kubernetes..."
-    - kubectl set image deployment/backend $APP_NAME=$CI_REGISTRY/backend-$APP_NAME:$CI_COMMIT_SHA -n $K8S_NAMESPACE
+    - kubectl set image deployment/backend backend=$CI_REGISTRY_IMAGE/backend:latest -n $K8S_NAMESPACE
     - kubectl rollout status deployment/backend -n $K8S_NAMESPACE --timeout=120s
 
 deploy-frontend:
@@ -62,7 +62,7 @@ deploy-frontend:
   image: bitnami/kubectl:latest
   script:
     - echo "🚀 Deploye Frontend zu Kubernetes..."
-    - kubectl set image deployment/frontend $APP_NAME=$CI_REGISTRY/frontend-$APP_NAME:$CI_COMMIT_SHA -n $K8S_NAMESPACE
+    - kubectl set image deployment/frontend frontend=$CI_REGISTRY_IMAGE/frontend:latest -n $K8S_NAMESPACE
     - kubectl rollout status deployment/frontend -n $K8S_NAMESPACE --timeout=120s
 
 deploy-ingress:
