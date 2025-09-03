@@ -2,6 +2,18 @@ import streamlit as st
 import requests
 from streamlit_option_menu import option_menu
 import pandas as pd
+import openai
+import io
+import base64
+from PIL import Image
+
+
+# Prepare OpenAI client
+client = openai.OpenAI(
+    api_key="ignored",
+    base_url="https://models.mylab.th-luebeck.dev/v1"
+)
+
 
 st.set_page_config(
     page_title="SmartBite",
@@ -17,6 +29,52 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "access_token" not in st.session_state:
     st.session_state["access_token"] = None
+
+
+def analyze_image_with_phi4(uploaded_file):
+    try:
+        # UploadedFile → Bytes einlesen
+        img = Image.open(uploaded_file)
+
+        # In Bytes umwandeln
+        img_byte_arr = io.BytesIO()
+        img.save(img_byte_arr, format=img.format if img.format else 'JPEG')
+        img_byte_arr = img_byte_arr.getvalue()
+
+        # Base64-kodieren
+        encoded_image = base64.b64encode(img_byte_arr).decode('utf-8')
+
+        # API-Call an OpenAI
+        chat_completion = client.chat.completions.create(
+            model="phi-4-multimodal",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{encoded_image}" }},
+                        {"type": "text", "text":
+                            "Analysiere das Bild und gib mir nur den eindeutigen Namen des Essens oder der Marke zurück. "
+                            "Antworte nur mit dem Produkt- oder Markennamen, ohne Zusatzwörter, ohne Fantasienamen. "
+                            "Wenn es ein Gericht ist, nenne nur die gängigste Bezeichnung (z. B. 'Currywurst'). "
+                            "Wenn es ein Getränk oder eine Marke ist, gib genau den Markennamen wieder (z. B. 'Coca Cola', 'Sidi Ali'). "
+                            "Schreibe den Namen so, wie man ihn im Alltag oder im Supermarkt findet. "
+                            "Gib ausschließlich den Namen zurück, ohne weitere Erklärung."
+                        }
+                    ]
+                }
+            ],
+            max_tokens=1024
+        )
+
+        if chat_completion.choices and chat_completion.choices[0].message.content:
+            ai_answer = chat_completion.choices[0].message.content.strip()
+            st.info(f"🍴 AI erkennt: **{ai_answer}**")
+            return ai_answer
+        return None
+
+    except Exception as e:
+        st.error(f"Fehler bei der Bildanalyse: {str(e)}")
+        return None
 
 
 # API
@@ -101,7 +159,7 @@ def show_login():
     if login_button:
         try:
             resp = requests.post(
-                url="http://127.0.0.1:8000/login",
+                url="http://backend:8000/login",
                 json={"username": username, "password": password},
                 timeout=5
             )
@@ -134,17 +192,24 @@ def show_login():
 def show_home():
     st.title("🍽️ Kalorien-Check mit OpenFoodFacts")
 
-    food_query = st.text_input("Was hast du gegessen?")
+    uploaded_file = st.file_uploader("Wähle ein Bild aus", type=['jpg', 'jpeg', 'png'])
+
+    if uploaded_file is None:
+        st.warning("Bitte ein Bild hochladen.")
+
+
+    #food_query = st.text_input("Was hast du gegessen?")
 
     if "nutrition_result" not in st.session_state:
         st.session_state.nutrition_result = None
 
     if st.button("Nährwerte anzeigen"):
-        result = get_nutrition_info(food_query)
+        result = get_nutrition_info(analyze_image_with_phi4(uploaded_file))
         if result:
             st.session_state.nutrition_result = result
         else:
             st.warning("Keine passenden Daten gefunden.")
+            return
 
     if st.session_state.nutrition_result:
         result = st.session_state.nutrition_result
@@ -171,7 +236,7 @@ def show_home():
 
                 try:
                     response = requests.post(
-                        url="http://127.0.0.1:8000/history",
+                        url="http://backend:8000/history",
                         json=result,
                         headers=headers
                     )
@@ -196,7 +261,7 @@ def show_history():
         }
         try:
             response = requests.get(
-                url="http://127.0.0.1:8000/history/",
+                url="http://backend:8000/history/",
                 headers=headers
             )
             if response.status_code == 200:
@@ -253,7 +318,7 @@ def show_sign_up():
                 "email": email
             }
             try:
-                resp = requests.post("http://127.0.0.1:8000/users/", json=payload)
+                resp = requests.post("http://backend:8000/users/", json=payload)
                 if resp.status_code == 200:
                     st.success("✅ Account erstellt! Du kannst dich jetzt einloggen.")
                 else:
@@ -278,7 +343,7 @@ def show_forgot_password():
                 "email": email_input
             }
             try:
-                resp = requests.post("http://127.0.0.1:8000/users/forget_password", json=payload)
+                resp = requests.post("http://backend:8000/users/forget_password", json=payload)
                 if resp.status_code == 200:
                     st.success("✅ Checken Sie bitte Ihre Postfach/Spam ein, um Ihre Passwort zurücksetzen")
                 else:
