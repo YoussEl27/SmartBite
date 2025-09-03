@@ -15,13 +15,11 @@ variables:
 prepare:
     stage: prepare
     script:
-      - kubectl delete secret gitlab-registry-credentials -n $K8S_NAMESPACE || true
-      - kubectl create secret docker-registry gitlab-registry-credentials \
-        --docker-server=$CI_REGISTRY \
-        --docker-username=image-registry \
-        --docker-password=$CI_REGISTRY_TOKEN \
-        --namespace=$K8S_NAMESPACE
-
+        - kubectl delete secret gitlab-registry-credentials || true
+        - "kubectl create secret docker-registry gitlab-registry-credentials \
+                    --docker-server=$CI_REGISTRY \
+                    --docker-username=image-registry \ 
+                    --docker-password=$CI_REGISTRY_TOKEN"
 claim-volume:
     stage: prepare
     script:
@@ -58,7 +56,6 @@ deploy-backend:
     - echo "🚀 Deploye Backend zu Kubernetes..."
     - kubectl set image deployment/backend backend=$CI_REGISTRY_IMAGE/backend:latest -n $K8S_NAMESPACE
     - kubectl rollout status deployment/backend -n $K8S_NAMESPACE --timeout=120s
-
 
 deploy-frontend:
   stage: deploy
