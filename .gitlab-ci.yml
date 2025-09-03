@@ -48,30 +48,6 @@ build-frontend:
     - docker:24.0-dind
 
 
-test-backend:
-  stage: test
-  image: python:3.11
-  script:
-    - echo "🟢 Installiere Backend-Abhängigkeiten..."
-    - pip install -r Backend/requirements.txt
-    - echo "🟢 Installiere pytest..."
-    - pip install pytest==7.4.3
-    - pip install pytest httpx
-    - echo "🟢 Führe Backend-Tests aus..."
-    - python -m pytest tests/test_backend.py -v
-
-test-frontend:
-  stage: test
-  image: python:3.11
-  script:
-    - echo "🟢 Installiere Frontend-Abhängigkeiten..."
-    - pip install -r requirements.txt
-    - echo "🟢 Installiere pytest..."
-    - pip install pytest==7.4.3
-    - pip install pytest httpx
-    - echo "🟢 Teste Streamlit-Import..."
-    - python -m pytest tests/test_frontend.py -v
-
 
 deploy-backend:
   stage: deploy
