@@ -51,4 +51,3 @@ async def create_history(history: schemas.HistoryCreate, db: db_dependency, curr
 @app.get("/history/")
 async def get_history(db: db_dependency, current_user: models.User = Depends(get_current_user)):
     return crud.get_histories_by_user(db, user_id= current_user.id)
-
