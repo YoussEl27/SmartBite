@@ -1,52 +1,97 @@
 image: "thlmylab/swakkd:stable"
 
-variables:
-  DOMAIN: "edu.k8s.th-luebeck.dev"
-  DEPLOY: "yes"
-
 stages:
-- prepare
-- build
-- deploy
-- destroy
+  - prepare
+  - build
+  - test
+  - deploy
 
-credentials:
-  stage: prepare
-  rules:
-    - if: '$DEPLOY == "yes"'
-  script:
-  - kubectl delete secret gitlab-registry-$CI_PROJECT_ID || true
-  - >
-    kubectl create secret docker-registry gitlab-registry-$CI_PROJECT_ID
-    --docker-server=$CI_REGISTRY
-    --docker-username=image-registry
-    --docker-password=$CI_REGISTRY_TOKEN
+variables:
+  APP_NAME: "SmartBite"
+  K8S_NAMESPACE: "webtech-ss2025-youssef-elkettani"
+  DOMAIN: "edu.k8s.th-luebeck.dev"
 
-app-img:
+
+prepare:
+    stage: prepare
+    script:
+        - kubectl delete secret gitlab-registry-credentials || true
+        - "kubectl create secret docker-registry gitlab-registry-credentials \
+                    --docker-server=$CI_REGISTRY \
+                    --docker-username=image-registry \ 
+                    --docker-password=$CI_REGISTRY_TOKEN"
+claim-volume:
+    stage: prepare
+    script:
+      - kubectl apply -f deploy/storage/pvc.yaml
+
+build-backend:
   stage: build
-  image: docker:28-dind
-  services: ["docker:28-dind"]
-  rules:
-    - if: '$DEPLOY == "yes"'
   script:
-    - docker version
+    - docker build -t $CI_REGISTRY_IMAGE/backend:latest ./Backend
+    - docker push $CI_REGISTRY_IMAGE/backend:latest
+    - echo "🔨 Baue Backend Image..."
+    - docker build -t $CI_REGISTRY/backend-$APP_NAME:$CI_COMMIT_SHA -f Backend/Dockerfile Backend/
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE/app-$CI_COMMIT_REF_NAME:latest app/
-    - docker push $CI_REGISTRY_IMAGE/app-$CI_COMMIT_REF_NAME:latest
+    - docker push $CI_REGISTRY/backend-$APP_NAME:$CI_COMMIT_SHA
+  image: docker:24.0
+  services:
+    - docker:24.0-dind
 
-app:
-  stage: deploy
-  rules:
-    - if: '$DEPLOY == "yes"'
+build-frontend:
+  stage: build
   script:
-  - mo deploy/app-dep.yaml | kubectl delete -f - || true
-  - mo deploy/app-dep.yaml | kubectl apply -f -
-  - mo deploy/app-svc.yaml | kubectl apply -f -
+    - docker build -t $CI_REGISTRY_IMAGE/frontend:latest ./app
+    - docker push $CI_REGISTRY_IMAGE/frontend:latest
+    - echo "🔨 Baue Frontend Image..."
+    - docker build -t $CI_REGISTRY/frontend-$APP_NAME:$CI_COMMIT_SHA -f app/Dockerfile app/
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker push $CI_REGISTRY/frontend-$APP_NAME:$CI_COMMIT_SHA
+  image: docker:24.0
+  services:
+    - docker:24.0-dind
 
-ingress:
-  stage: deploy
-  rules:
-    - if: '$DEPLOY == "yes"'
-  when: manual
+
+test-backend:
+  stage: test
+  image: python:3.11
   script:
-  - HOST=uber-$CI_PROJECT_ID.$DOMAIN mo deploy/project-ing.yaml | kubectl apply -f -
+    - echo "🟢 Installiere Backend-Abhängigkeiten..."
+    - pip install -r Backend/requirements.txt
+    - echo "🟢 Führe Backend-Tests aus..."
+    - python -m pytest tests/test_backend.py -v
+
+test-frontend:
+  stage: test
+  image: python:3.11
+  script:
+    - echo "🟢 Installiere Frontend-Abhängigkeiten..."
+    - pip install -r requirements.txt
+    - echo "🟢 Teste Streamlit-Import..."
+    - python -m pytest tests/test_frontend.py -v
+
+
+deploy-backend:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  script:
+    - echo "🚀 Deploye Backend zu Kubernetes..."
+    - kubectl set image deployment/backend $APP_NAME=$CI_REGISTRY/backend-$APP_NAME:$CI_COMMIT_SHA -n $K8S_NAMESPACE
+    - kubectl rollout status deployment/backend -n $K8S_NAMESPACE --timeout=120s
+
+deploy-frontend:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  script:
+    - echo "🚀 Deploye Frontend zu Kubernetes..."
+    - kubectl set image deployment/frontend $APP_NAME=$CI_REGISTRY/frontend-$APP_NAME:$CI_COMMIT_SHA -n $K8S_NAMESPACE
+    - kubectl rollout status deployment/frontend -n $K8S_NAMESPACE --timeout=120s
+
+deploy-ingress:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  script:
+    - echo "🌐 Aktualisiere Ingress..."
+    - kubectl apply -f deploy/project-ing.yaml -n $K8S_NAMESPACE
+  only:
+    - main
