@@ -67,7 +67,7 @@ deploy-frontend:
   #image: bitnami/kubectl:latest
   script:
     - kubectl apply -f deploy/frontend/app-dep.yaml -n $K8S_NAMESPACE
-    - kubectl apply -f deploy/frontend/app-srv.yaml -n $K8S_NAMESPACE
+    - kubectl apply -f deploy/frontend/app-svc.yaml -n $K8S_NAMESPACE
     - kubectl apply -f deploy/frontend/project-ing.yaml -n $K8S_NAMESPACE
     - kubectl rollout status deployment/frontend -n $K8S_NAMESPACE --timeout=120s
 
