@@ -1,30 +1,30 @@
-apiVersion: apps/v1                      # API-Version des Deployments (für Workloads)
-kind: Deployment                         # Ressourcentyp: Deployment verwaltet Pods/ReplicaSets
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: frontend
   namespace: webtech-ss2025-youssef-elkettani
-  labels:                                # Freie Schlüssel/Werte zum Markieren (für Selektion, Übersicht)
+  labels:
     app: frontend
 spec:
-  replicas: 1                            # Wie viele Pod-Kopien sollen laufen
-  selector:                              # Wie findet das Deployment "seine" Pods (Labels müssen matchen)
+  replicas: 1
+  selector:
     matchLabels:
       app: frontend
-  template:                              # Pod-Template: beschreibt, wie die Pods aussehen
+  template:
     metadata:
       labels:
-        app: frontend                    # Diese Labels landen auf den Pods → wichtig für den Service
+        app: frontend
     spec:
-      imagePullSecrets:                  # Notwendig, wenn das Image privat liegt (GitLab Registry)
-        - name: gitlab-registry-secret   # Secret-Name (muss vorher per kubectl erstellt worden sein)
+      imagePullSecrets:
+        - name: gitlab-registry-secret
       containers:
-        - name: frontend                 # Container-Name (frei wählbar)
+        - name: frontend
           image: git.mylab.th-luebeck.de:4181/webtech/ss2025/youssef-elkettani/frontend:latest
-                                          # Vollständiger Image-Name inkl. Registry/Projekt/Tag
-          imagePullPolicy: IfNotPresent  # Pullt nur, wenn das Image lokal nicht vorhanden ist
+
+          imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8501        # Port, auf dem Streamlit IM CONTAINER lauscht
-          resources:                     # (Optional) Ressourcenlimits/Requests
+            - containerPort: 8501
+          resources:
             requests:
               cpu: "50m"
               memory: "128Mi"
