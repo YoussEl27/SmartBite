@@ -24,9 +24,9 @@ spec:
             - containerPort: 8000
           env:
             - name: POSTGRES_HOST
-              value: db
+              value: "db"
             - name: POSTGRES_DB
-              value: postgres
+              value: "postgres"
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
@@ -37,8 +37,6 @@ spec:
                 secretKeyRef:
                   name: db-secret
                   key: password
-            - name: DATABASE_URL
-              value: postgresql+psycopg2://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):5432/$(POSTGRES_DB)
           resources:
             requests:
               cpu: "50m"
