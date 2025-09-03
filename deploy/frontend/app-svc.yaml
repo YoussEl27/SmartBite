@@ -1,14 +1,14 @@
-apiVersion: v1                           # API-Version für Services
-kind: Service                            # Ressourcentyp: Service (Cluster-IP)
+apiVersion: v1
+kind: Service
 metadata:
-  name: frontend                         # Service-Name → wird zu DNS "frontend.<namespace>.svc"
+  name: frontend
   labels:
     app: frontend
 spec:
-  type: ClusterIP                        # Erreichbar NUR innerhalb des Clusters (Standard)
+  type: ClusterIP
   selector:
-    app: frontend                        # Welche Pods werden hinter den Service gehängt (per Label)
+    app: frontend
   ports:
     - name: http
-      port: 80                           # Port, auf dem der Service erreichbar ist (virtueller Port)
+      port: 80
       targetPort: 8501
