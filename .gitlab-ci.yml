@@ -57,17 +57,17 @@ test-kubectl:
 deploy-backend:
   stage: deploy
   script:
-    - kubectl apply -f deploy/backend/backend_deployment.yaml -n $K8S_NAMESPACE
-    - kubectl apply -f deploy/backend/backend_service.yaml -n $K8S_NAMESPACE
-    - kubectl rollout status deployment/backend -n $K8S_NAMESPACE --timeout=120s
+    - mo deploy/backend/backend_deployment.yaml | kubectl delete -f - || true
+    - mo deploy/backend/backend_deployment.yaml | kubectl apply -f -
+    - mo apply -f deploy/backend/backend_service.yaml | kubectl apply -f -
 
 deploy-frontend:
   stage: deploy
   script:
-    - kubectl apply -f deploy/frontend/app-dep.yaml -n $K8S_NAMESPACE
-    - kubectl apply -f deploy/frontend/app-svc.yaml -n $K8S_NAMESPACE
-    - kubectl apply -f deploy/frontend/smartBite-ing.yaml -n $K8S_NAMESPACE
-    - kubectl rollout status deployment/frontend -n $K8S_NAMESPACE --timeout=120s
+    - mo deploy/frontend/app-dep.yaml | kubectl delete -f - || true
+    - mo deploy/frontend/app-dep.yaml | kubectl apply -f -
+    - mo deploy/frontend/app-svc.yaml | kubectl apply -f -
+    - HOST=uber-$CI_PROJECT_ID.$DOMAIN mo deploy/frontend/smartBite-ing.yaml | kubectl apply -f -
 
 #deploy-ingress:
 #  stage: deploy
