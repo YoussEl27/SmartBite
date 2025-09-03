@@ -65,7 +65,7 @@ deploy-frontend:
   script:
     - kubectl apply -f deploy/frontend/app-dep.yaml -n $K8S_NAMESPACE
     - kubectl apply -f deploy/frontend/app-svc.yaml -n $K8S_NAMESPACE
-    - kubectl apply -f deploy/frontend/smartbite-ing.yaml -n $K8S_NAMESPACE
+    - kubectl apply -f deploy/frontend/smartBite-ing.yaml -n $K8S_NAMESPACE
     - kubectl rollout status deployment/frontend -n $K8S_NAMESPACE --timeout=120s
 
 #deploy-ingress:
