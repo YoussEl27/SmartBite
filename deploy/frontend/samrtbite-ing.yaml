@@ -1,23 +1,22 @@
-
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: prime-ingress
+  name: smartBite-ingress
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt"
     acme.cert-manager.io/http01-edit-in-place: "true"
 spec:
   rules:
-  - host: "SmartBite-{{ CI_PROJECT_ID }}.edu.k8s.th-luebeck.dev"
+  - host: "smartBite-$CI_PROJECT_ID.edu.k8s.th-luebeck.dev"
     http:
       paths:
       - pathType: Prefix
         path: /
         backend:
           service:
-            name: prime-service
+            name: backend_service
             port:
               number: 80
   tls:
-  - secretName: prime-ingress-cert
-    hosts: ["prime-{{ CI_PROJECT_ID }}.edu.k8s.th-luebeck.dev"]
+  - secretName: smartBite-ingress-cert
+    hosts: ["smartbite-$CI_PROJECT_ID.edu.k8s.th-luebeck.dev"]
