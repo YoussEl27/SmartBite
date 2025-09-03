@@ -7,7 +7,7 @@ metadata:
     acme.cert-manager.io/http01-edit-in-place: "true"
 spec:
   rules:
-  - host: "smartbite-PLACEHOLDER_PROJECT_ID.edu.k8s.th-luebeck.dev"
+  - host: "smartbite-youssef-elkettani.edu.k8s.th-luebeck.dev"
     http:
       paths:
       - pathType: Prefix
@@ -19,4 +19,4 @@ spec:
               number: 80
   tls:
   - secretName: smartbite-ingress-cert
-    hosts: ["smartbite-PLACEHOLDER_PROJECT_ID.edu.k8s.th-luebeck.dev"]
+    hosts: ["smartbite-youssef-elkettani.edu.k8s.th-luebeck.dev"]
