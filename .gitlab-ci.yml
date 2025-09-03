@@ -49,14 +49,12 @@ build-frontend:
 
 test-kubectl:
   stage: deploy
-  #image: bitnami/kubectl:1.27.2
   script:
     - echo "Teste kubectl..."
     - kubectl version --client
 
 deploy-backend:
   stage: deploy
-  #image: bitnami/kubectl:latest
   script:
     - kubectl apply -f deploy/backend/backend_deployment.yaml -n $K8S_NAMESPACE
     - kubectl apply -f deploy/backend/backend_service.yaml -n $K8S_NAMESPACE
@@ -64,16 +62,15 @@ deploy-backend:
 
 deploy-frontend:
   stage: deploy
-  #image: bitnami/kubectl:latest
   script:
     - kubectl apply -f deploy/frontend/app-dep.yaml -n $K8S_NAMESPACE
     - kubectl apply -f deploy/frontend/app-svc.yaml -n $K8S_NAMESPACE
-    - kubectl apply -f deploy/frontend/project-ing.yaml -n $K8S_NAMESPACE
+    - kubectl apply -f deploy/frontend/smartbite-ing.yaml -n $K8S_NAMESPACE
     - kubectl rollout status deployment/frontend -n $K8S_NAMESPACE --timeout=120s
 
 #deploy-ingress:
 #  stage: deploy
-#  #image: bitnami/kubectl:latest
+#
 #  script:
 #    - echo "🌐 Aktualisiere Ingress..."
 #    - kubectl apply -f deploy/project-ing.yaml -n $K8S_NAMESPACE
