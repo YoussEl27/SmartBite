@@ -8,7 +8,7 @@ SmartBite ist eine moderne, KI-gestützte Webanwendung zur automatisierten Kalor
 - Autor: Youssef Elkettani
 
 ## Architekturübersicht
-![img.png](img.png)
+![img_3.png](img_3.png)
 
 ## Dienste
 
