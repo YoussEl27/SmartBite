@@ -25,7 +25,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-#Initialisierung von Session State
+# Initialize session state
 if "page" not in st.session_state:
     st.session_state.page = "login"
 if "logged_in" not in st.session_state:
@@ -36,18 +36,15 @@ if "access_token" not in st.session_state:
 
 def analyze_image_with_phi4(uploaded_file):
     try:
-        # UploadedFile → Bytes einlesen
         img = Image.open(uploaded_file)
 
-        # In Bytes umwandeln
         img_byte_arr = io.BytesIO()
         img.save(img_byte_arr, format=img.format if img.format else 'JPEG')
         img_byte_arr = img_byte_arr.getvalue()
 
-        # Base64-kodieren
         encoded_image = base64.b64encode(img_byte_arr).decode('utf-8')
 
-        # API-Call an OpenAI
+        # API call to OpenAI
         chat_completion = client.chat.completions.create(
             model="phi-4-multimodal",
             messages=[
@@ -56,12 +53,12 @@ def analyze_image_with_phi4(uploaded_file):
                     "content": [
                         {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{encoded_image}" }},
                         {"type": "text", "text":
-                            "Analysiere das Bild und gib mir nur den eindeutigen Namen des Essens oder der Marke zurück. "
-                            "Antworte nur mit dem Produkt- oder Markennamen, ohne Zusatzwörter, ohne Fantasienamen. "
-                            "Wenn es ein Gericht ist, nenne nur die gängigste Bezeichnung (z. B. 'Currywurst'). "
-                            "Wenn es ein Getränk oder eine Marke ist, gib genau den Markennamen wieder (z. B. 'Coca Cola', 'Sidi Ali'). "
-                            "Schreibe den Namen so, wie man ihn im Alltag oder im Supermarkt findet. "
-                            "Gib ausschließlich den Namen zurück, ohne weitere Erklärung."
+                            "Analyze the image and return only the unique name of the food or brand. "
+                            "Respond only with the product or brand name, without additional words, without fantasy names. "
+                            "If it's a dish, provide only the most common name (e.g., 'Currywurst'). "
+                            "If it's a drink or a brand, provide exactly the brand name (e.g., 'Coca Cola', 'Sidi Ali'). "
+                            "Write the name as you would find it in everyday life or in the supermarket. "
+                            "Return only the name, without further explanation."
                         }
                     ]
                 }
@@ -71,12 +68,12 @@ def analyze_image_with_phi4(uploaded_file):
 
         if chat_completion.choices and chat_completion.choices[0].message.content:
             ai_answer = chat_completion.choices[0].message.content.strip()
-            st.info(f"🍴 AI erkennt: **{ai_answer}**")
+            st.info(f"🍴 AI recognizes: **{ai_answer}**")
             return ai_answer
         return None
 
     except Exception as e:
-        st.error(f"Fehler bei der Bildanalyse: {str(e)}")
+        st.error(f"Error during image analysis: {str(e)}")
         return None
 
 
@@ -112,14 +109,14 @@ def get_nutrition_info(food_name):
     return None
 
 
-# Navigationsfunktionen
+# Navigation functions
 def navigate_to(page_name):
     st.session_state.page = page_name
 
 
 
 def render_navigation():
-    # Navigation nur anzeigen, wenn eingeloggt
+    # Show navigation only when logged in
     if st.session_state.logged_in:
         selected = option_menu(
             menu_title=None,
@@ -130,7 +127,7 @@ def render_navigation():
             key="nav_menu"
         )
 
-        # Navigation basierend auf Auswahl aktualisieren
+        # Update navigation based on selection
         if selected == "Home" and st.session_state.page != "home":
             navigate_to("home")
         elif selected == "History" and st.session_state.page != "history":
@@ -143,9 +140,9 @@ def render_navigation():
             st.rerun()
 
 
-# ---- Seitenfunktionen ----
+# ---- Page functions ----
 def show_login():
-    st.title("Willkommen bei SmartBite")
+    st.title("Welcome to SmartBite")
 
     with st.form("login_form"):
         username = st.text_input("Username")
@@ -153,11 +150,11 @@ def show_login():
 
         col1, col2, clo3 = st.columns(3)
         with col1:
-            login_button = st.form_submit_button("Login")
+            login_button = st.form_submit_button("Login" ,use_container_width=True, type="secondary")
         with col2:
-            signUp_button = st.form_submit_button("Sign Up")
+            signUp_button = st.form_submit_button("Sign Up", use_container_width=True, type="secondary")
         with clo3:
-            forgot_button = st.form_submit_button("Passwort vergessen?")
+            forgot_button = st.form_submit_button("Forgot Password?", use_container_width=True, type="secondary")
 
     if login_button:
         try:
@@ -173,63 +170,60 @@ def show_login():
                 if token:
                     st.session_state["access_token"] = token
                     st.session_state["logged_in"] = True
-                    st.success("✅ Erfolgreich eingeloggt!")
+                    st.success("✅ Successfully logged in!")
                     st.session_state["page"] = "home"
                     st.rerun()
                 else:
-                    st.error("❌ Falscher Benutzername oder Passwort")
+                    st.error("❌ Wrong username or password")
             else:
-                st.error("❌ Username existiert nicht oder Passwort falsch")
+                st.error("❌ Username doesn't exist or password is wrong")
         except requests.exceptions.RequestException:
-            st.error("❌ Verbindung zum Server fehlgeschlagen")
+            st.error("❌ Connection to server failed")
 
     if signUp_button:
         navigate_to("signUp")
         st.rerun()
 
     if forgot_button:
-        navigate_to("passwort_vergessen")
+        navigate_to("forgot_password")
         st.rerun()
 
 
 def show_home():
-    st.title("🍽️ Kalorien-Check mit OpenFoodFacts")
+    st.title("🍽️ Calorie Check with OpenFoodFacts")
 
-    uploaded_file = st.file_uploader("Wähle ein Bild aus", type=['jpg', 'jpeg', 'png'])
+    uploaded_file = st.camera_input("Choose an image", type=['jpg', 'jpeg', 'png'])
 
     if uploaded_file is None:
-        st.warning("Bitte ein Bild hochladen.")
-
-
-    #food_query = st.text_input("Was hast du gegessen?")
+        st.warning("Please take a picture.")
 
     if "nutrition_result" not in st.session_state:
         st.session_state.nutrition_result = None
 
-    if st.button("Nährwerte anzeigen"):
+    if st.button("Show nutritional values"):
         result = get_nutrition_info(analyze_image_with_phi4(uploaded_file))
         if result:
             st.session_state.nutrition_result = result
         else:
-            st.warning("Keine passenden Daten gefunden.")
+            st.warning("No matching data found.")
             return
 
     if st.session_state.nutrition_result:
         result = st.session_state.nutrition_result
-        st.subheader("Nährwertangaben:")
+        st.subheader("Nutritional information:")
 
         st.header(f"{result['Meal_name']}")
         col1, col2, col3 = st.columns(3)
         col1.metric("Calories", f"{result['Calories']} kcal")
         col1.metric("Protein", f"{result['Protein']} g")
         col2.metric("Carbs", f"{result['Carbs']} g")
-        col2.metric("Fett", f"{result['Fat']} g")
+        col2.metric("Fat", f"{result['Fat']} g")
         col3.metric("Sugar", f"{result['Sugar']} g")
         col3.metric("Salt", f"{result['Salt']} g")
 
-        if st.button("Meal speichern", type="secondary"):
+        if st.button("Save meal", type="secondary"):
             if "access_token" not in st.session_state:
-                st.warning("❌ Bitte zuerst einloggen, um Mahlzeiten zu speichern.")
+                st.warning("❌ Please log in first to save meals.")
                 return
             if st.session_state["access_token"]:
                 headers = {
@@ -244,18 +238,18 @@ def show_home():
                         headers=headers
                     )
                     if response.status_code == 200:
-                        st.success("✅ Mahlzeit wurde gespeichert!")
+                        st.success("✅ Meal saved!")
                     else:
-                        st.error("❌ Fehler beim Speichern. Bitte erneut versuchen.")
+                        st.error("❌ Error saving. Please try again.")
                 except requests.exceptions.RequestException:
-                    st.error("❌ Verbindung zum Server fehlgeschlagen.")
+                    st.error("❌ Connection to server failed.")
             else:
-                st.warning("Bitte zuerst einloggen, um Mahlzeiten zu speichern.")
+                st.warning("Please log in first to save meals.")
 
 def show_history():
-    st.title("🍽️ Meine Gerichte-history")
+    st.title("🍽️ My meal history")
     if "access_token" not in st.session_state:
-        st.warning("❌ Bitte zuerst einloggen, um Mahlzeiten zu speichern.")
+        st.warning("❌ Please log in first to view meal history.")
         return
     if st.session_state["access_token"]:
         headers = {
@@ -271,22 +265,22 @@ def show_history():
                 #st.write("Response:", response.status_code, response.json())
                 data = response.json()
                 if len(data) == 0:
-                    st.info("Noch keine Gerichte gespeichert.")
+                    st.info("No meals saved yet.")
                     return
                 df = pd.DataFrame(data)
             else:
-                st.error(f"Fehler beim Laden der History: {response.status_code}")
+                st.error(f"Error loading history: {response.status_code}")
                 return
         except requests.exceptions.RequestException:
-            st.error("❌ Verbindung zum Server fehlgeschlagen.")
+            st.error("❌ Connection to server failed.")
 
 
-    st.subheader("📋 Meine Gerichte")
+    st.subheader("📋 My meals")
     for index, row in df.iterrows():
         with st.expander(f"🍴 {row['meal_name']} - 🔥 {row['calories']} kcal"):
             st.subheader(row['meal_name'])
 
-            # Nährwert-Karte
+            # Nutrition card
             col1, col2, col3, col4, col5 = st.columns(5)
             with col1:
                 st.metric("Calories", f"{row['calories']} kcal")
@@ -298,15 +292,13 @@ def show_history():
                 st.metric("Fat", f"{row['fat']}g")
             with col5:
                 st.metric("Sugar", f"{row['sugar']}g")
-            #with col6:
-             #   st.metric("Salt", f"{row['salt']}g")
 
 def show_about():
-    st.title("Über SmartBite")
-    st.write("SmartBite hilft Ihnen, Ihre Ernährung zu tracken und gesündere Entscheidungen zu treffen.")
+    st.title("About SmartBite")
+    st.write("Your AI Nutrition Assistant. Snap a photo of your meal, get instant nutrition insights, and track your eating habits over time.")
 
 def show_sign_up():
-    st.title("Neuen Account erstellen")
+    st.title("Create new account")
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
     email = st.text_input("Email")
@@ -323,47 +315,46 @@ def show_sign_up():
             try:
                 resp = requests.post(f"{BASE_URL}/users/", json=payload)
                 if resp.status_code == 200:
-                    st.success("✅ Account erstellt! Du kannst dich jetzt einloggen.")
+                    st.success("✅ Account created! You can now log in.")
                 else:
-                    st.error(f"❌ Fehler: {resp.json()['detail']}")
+                    st.error(f"❌ Error: {resp.json()['detail']}")
             except Exception as e:
-                st.error(f"❌ Verbindung zum Server fehlgeschlagen: {e}")
+                st.error(f"❌ Connection to server failed: {e}")
 
     with col2:
-        if st.button("Zurück zum Login", use_container_width=True, type="secondary"):
+        if st.button("Back to Login", use_container_width=True, type="secondary"):
             navigate_to("login")
             st.rerun()
 
 def show_forgot_password():
-    st.title("Passwort zurücksetzen")
+    st.title("Reset Password")
     email_input = st.text_input("Email")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        if st.button("Passwort zurücksetzen", use_container_width=True, type="secondary"):
+        if st.button("Reset Password", use_container_width=True, type="secondary"):
             payload = {
                 "email": email_input
             }
             try:
                 resp = requests.post(f"{BASE_URL}/users/forget_password", json=payload)
                 if resp.status_code == 200:
-                    st.success("✅ Checken Sie bitte Ihre Postfach/Spam ein, um Ihre Passwort zurücksetzen")
+                    st.success("✅ Please check your inbox/spam to reset your password")
                 else:
-                    st.error(f"❌ Fehler: {resp.json()['detail']}")
+                    st.error(f"❌ Error: {resp.json()['detail']}")
             except Exception as e:
-                st.error(f"❌ Verbindung zum Server fehlgeschlagen: {e}")
+                st.error(f"❌ Connection to server failed: {e}")
 
     with col2:
         with col2:
-            if st.button("Zurück zum Login", use_container_width=True, type="secondary"):
+            if st.button("Back to Login", use_container_width=True, type="secondary"):
                 navigate_to("login")
                 st.rerun()
 
 
 def main():
     render_navigation()
-
 
     if not st.session_state.logged_in:
         if st.session_state.page == "login":
