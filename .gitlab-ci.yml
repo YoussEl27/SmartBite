@@ -66,7 +66,7 @@ restart-services:
     - kubectl apply -f deploy/storage/secret.yaml
 
     - kubectl apply -f deploy/storage/db_deployment.yaml
-    - kubectl apply -f deploy/backend/backend_deployment.yaml
+    - kubectl apply -f deploy/backend/backend_dep.yaml
     - kubectl apply -f deploy/frontend/app-dep.yaml
 
     - kubectl wait --for=condition=available deployment/db --timeout=300s
@@ -80,8 +80,8 @@ deploy-backend:
   rules:
     - if: '$DEPLOY == "yes"'
   script:
-    - mo deploy/backend/backend_deployment.yaml | kubectl delete -f - || true
-    - mo deploy/backend/backend_deployment.yaml | kubectl apply -f -
+    - mo deploy/backend/backend_dep.yaml | kubectl delete -f - || true
+    - mo deploy/backend/backend_dep.yaml | kubectl apply -f -
     - mo deploy/backend/backend_service.yaml | kubectl apply -f -
 
 deploy-frontend:
