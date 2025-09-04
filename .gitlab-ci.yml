@@ -3,7 +3,6 @@ image: "thlmylab/swakkd:stable"
 stages:
   - prepare
   - build
-  - restart
   - deploy
 
 variables:
@@ -12,23 +11,23 @@ variables:
   K8S_NAMESPACE: "webtech-ss2025-youssef-elkettani"
   DOMAIN: "edu.k8s.th-luebeck.dev"
 
-
 prepare:
-    stage: prepare
-    rules:
-      - if: '$DEPLOY == "yes"'
-    script:
-        - kubectl delete secret gitlab-registry-credentials || true
-        - "kubectl create secret docker-registry gitlab-registry-credentials \
-                    --docker-server=$CI_REGISTRY \
-                    --docker-username=image-registry \ 
-                    --docker-password=$CI_REGISTRY_TOKEN"
+  stage: prepare
+  rules:
+    - if: '$DEPLOY == "yes"'
+  script:
+    - kubectl delete secret gitlab-registry-credentials || true
+    - "kubectl create secret docker-registry gitlab-registry-credentials \
+              --docker-server=$CI_REGISTRY \
+              --docker-username=image-registry \ 
+              --docker-password=$CI_REGISTRY_TOKEN"
+
 claim-volume:
-    stage: prepare
-    rules:
-      - if: '$DEPLOY == "yes"'
-    script:
-      - kubectl apply -f deploy/storage/pvc.yaml
+  stage: prepare
+  rules:
+    - if: '$DEPLOY == "yes"'
+  script:
+    - kubectl apply -f deploy/storage/pvc.yaml
 
 build-backend:
   stage: build
@@ -37,8 +36,8 @@ build-backend:
   script:
     - echo "🔨 Baue Backend Image..."
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build --no-cache -t $CI_REGISTRY_IMAGE/backend:v3 ./Backend
-    - docker push $CI_REGISTRY_IMAGE/backend:v3
+    - docker build --no-cache -t $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA ./Backend
+    - docker push $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA
   image: docker:24.0
   services:
     - docker:24.0-dind
@@ -49,48 +48,30 @@ build-frontend:
     - if: '$DEPLOY == "yes"'
   script:
     - echo "🔨 Baue Frontend Image..."
-    - kubectl delete ingress smartbite-ingress -n $K8S_NAMESPACE || true
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build --no-cache -t $CI_REGISTRY_IMAGE/frontend:latest ./app
-    - docker push $CI_REGISTRY_IMAGE/frontend:latest
+    - docker build --no-cache -t $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA ./app
+    - docker push $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA
   image: docker:24.0
   services:
     - docker:24.0-dind
-
-
-#--restart-services:
-#  stage: restart
-#  rules:
-#    - if: '$DEPLOY == "yes"'
-#  script:
-#    - kubectl apply -f deploy/storage/secret.yaml
-#
-#    - kubectl apply -f deploy/storage/db_deployment.yaml
-#    - kubectl apply -f deploy/backend/backend_dep.yaml
-#    - kubectl apply -f deploy/frontend/app-dep.yaml
-#
-#    - kubectl wait --for=condition=available deployment/db --timeout=300s
-#    - kubectl wait --for=condition=available deployment/backend --timeout=300s
-#    - kubectl wait --for=condition=available deployment/frontend --timeout=300s
-
-
 
 deploy-backend:
   stage: deploy
   rules:
     - if: '$DEPLOY == "yes"'
   script:
-    - mo deploy/backend/backend_dep.yaml | kubectl delete -f - || true
     - mo deploy/backend/backend_dep.yaml | kubectl apply -f -
+    - kubectl rollout restart deployment/backend -n $K8S_NAMESPACE
     - mo deploy/backend/backend_service.yaml | kubectl apply -f -
+  # - mo deploy/backend/backend_dep.yaml | kubectl delete -f - || true
 
 deploy-frontend:
   stage: deploy
   rules:
     - if: '$DEPLOY == "yes"'
   script:
-    - mo deploy/frontend/app-dep.yaml | kubectl delete -f - || true
     - mo deploy/frontend/app-dep.yaml | kubectl apply -f -
+    - kubectl rollout restart deployment/frontend -n $K8S_NAMESPACE
     - mo deploy/frontend/app-svc.yaml | kubectl apply -f -
     - HOST=uber-$CI_PROJECT_ID.$DOMAIN mo deploy/frontend/smartBite-ing.yaml | kubectl apply -f -
-
+  # - mo deploy/frontend/app-dep.yaml | kubectl delete -f - || true
