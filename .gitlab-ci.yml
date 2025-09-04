@@ -14,31 +14,24 @@ variables:
 
 
 prepare:
-  stage: prepare
-  rules:
-    - if: '$DEPLOY == "yes"'
-  before_script:
-    - echo "$KUBECONFIG" > kubeconfig
-    - export KUBECONFIG=$PWD/kubeconfig
-  script:
-    - kubectl delete secret gitlab-registry-credentials -n $K8S_NAMESPACE || true
-    - |
-      kubectl create secret docker-registry gitlab-registry-credentials \
-        --docker-server=$CI_REGISTRY \
-        --docker-username=image-registry \
-        --docker-password=$CI_REGISTRY_TOKEN \
-        -n $K8S_NAMESPACE
-
+    stage: prepare
+    rules:
+      - if: '$DEPLOY == "yes"'
+    before_script:
+      - echo "$KUBECONFIG_DATA" > kubeconfig
+      - export KUBECONFIG=$PWD/kubeconfig
+    script:
+        - kubectl delete secret gitlab-registry-credentials || true
+        - "kubectl create secret docker-registry gitlab-registry-credentials \
+                    --docker-server=$CI_REGISTRY \
+                    --docker-username=image-registry \ 
+                    --docker-password=$CI_REGISTRY_TOKEN"
 claim-volume:
-  stage: prepare
-  rules:
-    - if: '$DEPLOY == "yes"'
-  before_script:
-    - echo "$KUBECONFIG" > kubeconfig
-    - export KUBECONFIG=$PWD/kubeconfig
-  script:
-    - kubectl apply -f deploy/storage/pvc.yaml -n $K8S_NAMESPACE
-
+    stage: prepare
+    rules:
+      - if: '$DEPLOY == "yes"'
+    script:
+      - kubectl apply -f deploy/storage/pvc.yaml
 
 build-backend:
   stage: build
@@ -59,38 +52,32 @@ build-frontend:
     - if: '$DEPLOY == "yes"'
   script:
     - echo "🔨 Baue Frontend Image..."
+    - kubectl delete ingress smartbite-ingress -n $K8S_NAMESPACE || true
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build --no-cache -t $CI_REGISTRY_IMAGE/frontend:latest ./app
     - docker push $CI_REGISTRY_IMAGE/frontend:latest
-    - kubectl delete ingress smartbite-ingress -n $K8S_NAMESPACE || true
   image: docker:24.0
   services:
     - docker:24.0-dind
-
 
 restart-services:
   stage: restart
   rules:
     - if: '$DEPLOY == "yes"'
-  before_script:
-    - echo "$KUBECONFIG" > kubeconfig
-    - export KUBECONFIG=$PWD/kubeconfig
   script:
-    - kubectl wait --for=condition=available deploy/db --timeout=300s -n $K8S_NAMESPACE
-    - kubectl wait --for=condition=available deploy/backend --timeout=300s -n $K8S_NAMESPACE
-    - kubectl wait --for=condition=available deploy/frontend --timeout=300s -n $K8S_NAMESPACE
-    - kubectl rollout restart deployment db -n $K8S_NAMESPACE
-    - kubectl rollout restart deployment backend -n $K8S_NAMESPACE
-    - kubectl rollout restart deployment frontend -n $K8S_NAMESPACE
+    - kubectl wait --for=condition=available deploy/db --timeout=300s
+    - kubectl wait --for=condition=available deploy/backend --timeout=300s
+    - kubectl wait --for=condition=available deploy/frontend --timeout=300s
+
+    - kubectl rollout restart deployment db
+    - kubectl rollout restart deployment backend
+    - kubectl rollout restart deployment frontend
 
 
 deploy-backend:
   stage: deploy
   rules:
     - if: '$DEPLOY == "yes"'
-  before_script:
-    - echo "$KUBECONFIG" > kubeconfig
-    - export KUBECONFIG=$PWD/kubeconfig
   script:
     - mo deploy/backend/backend_deployment.yaml | kubectl delete -f - || true
     - mo deploy/backend/backend_deployment.yaml | kubectl apply -f -
@@ -100,11 +87,9 @@ deploy-frontend:
   stage: deploy
   rules:
     - if: '$DEPLOY == "yes"'
-  before_script:
-    - echo "$KUBECONFIG" > kubeconfig
-    - export KUBECONFIG=$PWD/kubeconfig
   script:
     - mo deploy/frontend/app-dep.yaml | kubectl delete -f - || true
     - mo deploy/frontend/app-dep.yaml | kubectl apply -f -
     - mo deploy/frontend/app-svc.yaml | kubectl apply -f -
     - HOST=uber-$CI_PROJECT_ID.$DOMAIN mo deploy/frontend/smartBite-ing.yaml | kubectl apply -f -
+
