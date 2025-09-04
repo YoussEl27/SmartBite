@@ -18,7 +18,7 @@ spec:
         - name: gitlab-registry-credentials
       containers:
         - name: backend
-          image: git.mylab.th-luebeck.de:4181/webtech/ss2025/youssef-elkettani/backend:latest
+          image: git.mylab.th-luebeck.de:4181/webtech/ss2025/youssef-elkettani/backend:V2
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
