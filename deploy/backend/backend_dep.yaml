@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend
+  namespace: webtech-ss2025-youssef-elkettani
   labels:
     app: backend
 spec:
@@ -25,23 +26,18 @@ spec:
           env:
             - name: POSTGRES_HOST
               value: "db"
-
             - name: POSTGRES_DB
               value: "postgres"
-
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
                   name: db-secret
                   key: username
-
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: db-secret
                   key: password
-            #- name: DATABASE_URL
-            #  value: "postgresql+psycopg2://postgres:Ysf%402002@db:5432/postgres"
           resources:
             requests:
               cpu: "50m"
