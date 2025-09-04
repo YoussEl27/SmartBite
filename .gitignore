@@ -1,4 +1,21 @@
-﻿.env
+.env/
+.venv/
+venv/
+
+
+
 .idea/
 
 .env
+.env.local
+.env.*.local
+
+
+logs/
+*.log
+
+
+.DS_Store
+Thumbs.db
+
+deploy/storage/secret.yaml
