@@ -37,8 +37,8 @@ build-backend:
   script:
     - echo "🔨 Baue Backend Image..."
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build --no-cache -t $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA ./Backend
-    - docker push $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA
+    - docker build --no-cache -t $CI_REGISTRY_IMAGE/backend:v3 ./Backend
+    - docker push $CI_REGISTRY_IMAGE/backend:v3
   image: docker:24.0
   services:
     - docker:24.0-dind
@@ -51,8 +51,8 @@ build-frontend:
     - echo "🔨 Baue Frontend Image..."
     - kubectl delete ingress smartbite-ingress -n $K8S_NAMESPACE || true
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build --no-cache -t $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA ./app
-    - docker push $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA
+    - docker build --no-cache -t $CI_REGISTRY_IMAGE/frontend:latest ./app
+    - docker push $CI_REGISTRY_IMAGE/frontend:latest
   image: docker:24.0
   services:
     - docker:24.0-dind

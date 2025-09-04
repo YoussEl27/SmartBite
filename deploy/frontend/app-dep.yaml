@@ -19,7 +19,7 @@ spec:
         - name: gitlab-registry-credentials
       containers:
         - name: frontend
-          image: git.mylab.th-luebeck.de:4181/webtech/ss2025/youssef-elkettani/frontend:${IMAGE_TAG}
+          image: git.mylab.th-luebeck.de:4181/webtech/ss2025/youssef-elkettani/frontend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8501
