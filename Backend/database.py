@@ -1,4 +1,4 @@
-from urllib.parse import quote_plus
+from urllib.parse import quote
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
@@ -10,7 +10,7 @@ POSTGRES_HOST = os.getenv("POSTGRES_HOST", "db")
 POSTGRES_DB = os.getenv("POSTGRES_DB", "postgres")
 
 
-encoded_password = quote_plus(POSTGRES_PASSWORD)
+encoded_password = quote(POSTGRES_PASSWORD)
 
 
 DATABASE_URL = f"postgresql+psycopg2://{POSTGRES_USER}:{encoded_password}@{POSTGRES_HOST}:5432/{POSTGRES_DB}"
