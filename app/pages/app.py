@@ -1,3 +1,5 @@
+import os
+
 import streamlit as st
 import requests
 from streamlit_option_menu import option_menu
@@ -7,6 +9,7 @@ import io
 import base64
 from PIL import Image
 
+BASE_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 # Prepare OpenAI client
 client = openai.OpenAI(
@@ -159,7 +162,7 @@ def show_login():
     if login_button:
         try:
             resp = requests.post(
-                url="http://backend:8000/login",
+                url=f"{BASE_URL}/login",
                 json={"username": username, "password": password},
                 timeout=5
             )
@@ -236,7 +239,7 @@ def show_home():
 
                 try:
                     response = requests.post(
-                        url="http://backend:8000/history",
+                        url=f"{BASE_URL}/history",
                         json=result,
                         headers=headers
                     )
@@ -261,7 +264,7 @@ def show_history():
         }
         try:
             response = requests.get(
-                url="http://backend:8000/history/",
+                url=f"{BASE_URL}/history/",
                 headers=headers
             )
             if response.status_code == 200:
@@ -318,7 +321,7 @@ def show_sign_up():
                 "email": email
             }
             try:
-                resp = requests.post("http://backend:8000/users/", json=payload)
+                resp = requests.post(f"{BASE_URL}/users/", json=payload)
                 if resp.status_code == 200:
                     st.success("✅ Account erstellt! Du kannst dich jetzt einloggen.")
                 else:
@@ -343,7 +346,7 @@ def show_forgot_password():
                 "email": email_input
             }
             try:
-                resp = requests.post("http://backend:8000/users/forget_password", json=payload)
+                resp = requests.post(f"{BASE_URL}/users/forget_password", json=payload)
                 if resp.status_code == 200:
                     st.success("✅ Checken Sie bitte Ihre Postfach/Spam ein, um Ihre Passwort zurücksetzen")
                 else:
