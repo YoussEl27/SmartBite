@@ -17,6 +17,9 @@ prepare:
     stage: prepare
     rules:
       - if: '$DEPLOY == "yes"'
+    before_script:
+      - echo "$KUBECONFIG_DATA" > kubeconfig
+      - export KUBECONFIG=$PWD/kubeconfig
     script:
         - kubectl delete secret gitlab-registry-credentials || true
         - "kubectl create secret docker-registry gitlab-registry-credentials \
