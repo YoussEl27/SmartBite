@@ -37,7 +37,7 @@ build-backend:
   script:
     - echo "🔨 Baue Backend Image..."
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build --no-cache -t $CI_REGISTRY_IMAGE/backend:latest ./Backend
+    - docker build --no-cache -t $CI_REGISTRY_IMAGE/backend:v3 ./Backend
     - docker push $CI_REGISTRY_IMAGE/backend:latest
   image: docker:24.0
   services:
