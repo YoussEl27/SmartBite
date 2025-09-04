@@ -62,9 +62,9 @@ restart-services:
   rules:
     - if: '$DEPLOY == "yes"'
   script:
-    - kubectl apply -f deployment-db.yaml
-    - kubectl apply -f deployment-backend.yaml
-    - kubectl apply -f deployment-frontend.yaml
+    - kubectl apply -f db_deployment.yaml
+    - kubectl apply -f backend_deployment.yaml
+    - kubectl apply -f app-dep.yaml
 
     - kubectl wait --for=condition=available deploy/db --timeout=300s
     - kubectl wait --for=condition=available deploy/backend --timeout=300s
