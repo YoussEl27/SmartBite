@@ -57,18 +57,7 @@ build-frontend:
   services:
     - docker:24.0-dind
 
-restart-services:
-  stage: restart
-  rules:
-    - if: '$DEPLOY == "yes"'
-  script:
-    - kubectl apply -f deploy/storage/db_deployment.yaml
-    - kubectl apply -f deploy/backend/backend_deployment.yaml
-    - kubectl apply -f deploy/frontend/app-dep.yaml
 
-    - kubectl wait --for=condition=available deployment/db --timeout=600s
-    - kubectl wait --for=condition=available deployment/backend --timeout=600s
-    - kubectl wait --for=condition=available deployment/frontend --timeout=600s
 
 
 
