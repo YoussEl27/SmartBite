@@ -9,7 +9,7 @@ import io
 import base64
 from PIL import Image
 
-BASE_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+BASE_URL = os.getenv("BACKEND_URL", "http://host.docker.internal:8000")
 
 # Prepare OpenAI client
 client = openai.OpenAI(
@@ -192,7 +192,7 @@ def show_login():
 def show_home():
     st.title("🍽️ Calorie Check with OpenFoodFacts")
 
-    uploaded_file = st.camera_input("Choose an image", type=['jpg', 'jpeg', 'png'])
+    uploaded_file = st.file_uploader("Choose an image", type=['jpg', 'jpeg', 'png'])
 
     if uploaded_file is None:
         st.warning("Please take a picture.")
@@ -214,7 +214,7 @@ def show_home():
 
         st.header(f"{result['Meal_name']}")
         col1, col2, col3 = st.columns(3)
-        col1.metric("Calories", f"{result['Calories']} kcal")
+        col1.metric("Calories pro 100g", f"{result['Calories']} kcal")
         col1.metric("Protein", f"{result['Protein']} g")
         col2.metric("Carbs", f"{result['Carbs']} g")
         col2.metric("Fat", f"{result['Fat']} g")
