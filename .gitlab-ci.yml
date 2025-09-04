@@ -63,7 +63,7 @@ restart-services:
   rules:
     - if: '$DEPLOY == "yes"'
   script:
-    - kubectl apply -f deploy/storage/db-secret.yaml
+    - kubectl apply -f deploy/storage/secret.yaml
 
     - kubectl apply -f deploy/storage/db_deployment.yaml
     - kubectl apply -f deploy/backend/backend_deployment.yaml
