@@ -283,7 +283,7 @@ def show_history():
             # Nutrition card
             col1, col2, col3, col4, col5 = st.columns(5)
             with col1:
-                st.metric("Calories", f"{row['calories']} kcal")
+                st.metric("Calories pro 100g", f"{row['calories']} kcal")
             with col2:
                 st.metric("Protein", f"{row['protein']}g")
             with col3:
