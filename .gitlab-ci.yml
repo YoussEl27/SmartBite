@@ -46,7 +46,7 @@ build-backend:
 build-frontend:
   stage: build
   rules:
-    - if: '$DEPLOY == "yes"'
+    - if: '$DEPLOY == "no"'
   script:
     - echo "🔨 Baue Frontend Image..."
     - kubectl delete ingress smartbite-ingress -n $K8S_NAMESPACE || true
