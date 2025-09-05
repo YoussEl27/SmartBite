@@ -38,8 +38,11 @@ def analyze_image_with_phi4(uploaded_file):
     try:
         img = Image.open(uploaded_file)
 
+        max_size = (800, 800)
+        img.thumbnail(max_size)
+
         img_byte_arr = io.BytesIO()
-        img.save(img_byte_arr, format=img.format if img.format else 'JPEG')
+        img.convert("RGB").save(img_byte_arr, format="JPEG", quality=80)
         img_byte_arr = img_byte_arr.getvalue()
 
         encoded_image = base64.b64encode(img_byte_arr).decode('utf-8')
