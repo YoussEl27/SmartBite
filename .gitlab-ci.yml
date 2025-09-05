@@ -8,7 +8,7 @@ stages:
 
 variables:
   APP_NAME: "SmartBite"
-  DEPLOY: "yes"
+  DEPLOY: "no"
   K8S_NAMESPACE: "webtech-ss2025-youssef-elkettani"
   DOMAIN: "edu.k8s.th-luebeck.dev"
 
@@ -46,7 +46,7 @@ build-backend:
 build-frontend:
   stage: build
   rules:
-    - if: '$DEPLOY == "no"'
+    - if: '$DEPLOY == "yes"'
   script:
     - echo "🔨 Baue Frontend Image..."
     - kubectl delete ingress smartbite-ingress -n $K8S_NAMESPACE || true
