@@ -125,6 +125,15 @@ Der Status des Deployments kann unter **CI/CD > Pipelines** in GitLab verfolgt w
 Nach einem erfolgreichen Deployment ist die Anwendung unter dieser URL erreichbar:
 **https://smartbite.edu.k8s.th-luebeck.dev**
 
+##  Demo-Zugang
+- Um die vollen Funktionen der App sofort testen zu können, steht ein vorbereiteter Demo-Account zur Verfügung.
+  - Anmeldedaten:
+    - URL: https://smartbite.edu.k8s.th-luebeck.dev
+    - Username : demo
+    - Password : demo1234
+  - Was Sie im Demo-Account sehen können:
+    - Verknüpfte History: Der Account enthält eine vorab erstellte History mit Beispiel-Lebensmitteln und analysierten Mahlzeiten.
+
 ## Verwendete Technologien/Bibliotheken
   ### Backend
 - FastAPI - Web Framework für APIs
