@@ -192,7 +192,10 @@ def show_login():
 def show_home():
     st.title("🍽️ Calorie Check with OpenFoodFacts")
 
-    uploaded_file = st.file_uploader("Choose an image", type=['jpg', 'jpeg', 'png'])
+    uploaded_file = st.file_uploader("Choose an image",
+                                     type=['jpg', 'jpeg', 'png'],
+                                     accept_multiple_files=False,
+                                     help="Max. 2MB für beste Performance")
 
     if uploaded_file is None:
         st.warning("Please take a picture.")
