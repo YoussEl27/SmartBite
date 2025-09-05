@@ -163,6 +163,9 @@ Nach einem erfolgreichen Deployment ist die Anwendung unter dieser URL erreichba
 - phi-4-multimodal - KI-Modell für Bilderkennung 
 
 ## Aufgetretene Probleme
+### Datenqualität der OpenFoodFacts API
+- Problem:  
+  - Die Anwendung ist stark von der OpenFoodFacts API abhängig, um Nährwertinformationen zu beziehen. Es wurde beobachtet, dass die API in einigen Fällen unvollständige, veraltete oder inkonsistente Daten zurückliefert.
 #### Kamera-Funktionalität im Production-Deployment
   - Problem:
     - Ursprünglich war die Nutzung der camera_input-Komponente von Streamlit geplant. Diese Komponente funktionierte in der lokalen Entwicklungsumgebung einwandfrei, scheiterte jedoch im Kubernetes-Deployment. Die Ursache hierfür liegt in den Sicherheitseinschränkungen moderner Browser, die den Kamerazugriff nur über eine sichere HTTPS-Verbindung und oft nur in bestimmten Kontexten erlauben. Im Production-Setup wurde dieser Zugriff blockiert.
@@ -170,9 +173,9 @@ Nach einem erfolgreichen Deployment ist die Anwendung unter dieser URL erreichba
     - Als zuverlässige Alternative wurde auf die file_uploader-Komponente von Streamlit umgestellt. Wichtig: Diese Lösung bietet praktisch den gleichen Funktionsumfang, da Nutzer auf Mobilgeräten beim Upload-Dialog die Option haben, direkt ein neues Foto mit der Kamera aufzunehmen, anstatt ein bestehendes Bild auszuwählen.
   - Bekanntes Restproblem:
         - Beim Upload sehr großer Bilder (insbesondere von modernen Smartphone-Kameras) kann folgender Fehler auftreten:
-          - ```
-            AxiosError: Request failed with status code 413
-            ```
+        - ```
+          AxiosError: Request failed with status code 413
+          ```
   - Lösungsansatz und Zeitmangel:
     - Es wurde versucht, die Bilder clientseitig vor dem Hochladen zu komprimieren und zu verkleinern, um die Dateigröße zu reduzieren. Aufgrund der zeitlichen Komplexität einer stabilen Implementierung dieser Komprimierung in Streamlit konnte dieser Ansatz jedoch nicht finalisiert werden.
   - Aktueller Status:
