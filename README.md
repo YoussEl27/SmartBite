@@ -102,13 +102,28 @@ SmartBite ist eine moderne, KI-gestützte Webanwendung zur automatisierten Kalor
 
 ## Anwendung ausführen/Deployment
 
-  ### Start
-- In der .gitlab-ci.yml Datei:  
-  - 'DEPLOY == "no"' ==> 'DEPLOY == "yes"' ändern.
-- Push zum Main-Branch löst automatisches Deployment aus.
+ ### Automatisches Deployment (CI/CD)
+
+Das Deployment auf den Kubernetes-Cluster wird automatisch von der GitLab CI/CD-Pipeline gesteuert.
+
+**Voraussetzung:** Die Pipeline wird nur ausgelöst, wenn die Variable `DEPLOY` auf `"yes"` gesetzt ist.
+
+**So wird's gemacht:**
+1.  **Variable setzen:** In der `.gitlab-ci.yml`-Datei den Wert der Variable `DEPLOY` von `"no"` auf `"yes"` ändern.
+    ```yaml
+    variables:
+      APP_NAME: "SmartBite"
+      DEPLOY: "yes"  # hier ändern
+    ```
+2.  **Änderung pushen:** Committe die geänderte Datei und pushe sie in den `main`-Branch.
+3.  **Pipeline startet:** Der Push trigger automatisch die Pipeline in GitLab, die die Anwendung nun baut und deployt.
+
+Der Status des Deployments kann unter **CI/CD > Pipelines** in GitLab verfolgt werden.
   
-  ### Zugriff
-- https://smartbite.edu.k8s.th-luebeck.dev
+### Zugriff auf die live Anwendung
+
+Nach einem erfolgreichen Deployment ist die Anwendung unter dieser URL erreichbar:
+**https://smartbite.edu.k8s.th-luebeck.dev**
 
 ## Verwendete Technologien/Bibliotheken
   ### Backend
@@ -140,7 +155,19 @@ SmartBite ist eine moderne, KI-gestützte Webanwendung zur automatisierten Kalor
 
 ## Aufgetretene Probleme
 #### Kamera-Funktionalität im Production-Deployment
-  - Ursprünglich war vorgesehen, dass der Nutzer bei camera_input entweder ein Bild hochladen oder direkt ein Foto aufnehmen kann. Das hat jedoch nur lokal funktioniert. In Kubernetes-Umgebungen (K8s) klappte es nicht, vermutlich aus Datenschutzgründen. Daher wurde auf file_upload umgestellt.
+  - Problem:
+    - Ursprünglich war die Nutzung der camera_input-Komponente von Streamlit geplant. Diese Komponente funktionierte in der lokalen Entwicklungsumgebung einwandfrei, scheiterte jedoch im Kubernetes-Deployment. Die Ursache hierfür liegt in den Sicherheitseinschränkungen moderner Browser, die den Kamerazugriff nur über eine sichere HTTPS-Verbindung und oft nur in bestimmten Kontexten erlauben. Im Production-Setup wurde dieser Zugriff blockiert.
+  - Lösung:
+    - Als zuverlässige Alternative wurde auf die file_uploader-Komponente von Streamlit umgestellt. Wichtig: Diese Lösung bietet praktisch den gleichen Funktionsumfang, da Nutzer auf Mobilgeräten beim Upload-Dialog die Option haben, direkt ein neues Foto mit der Kamera aufzunehmen, anstatt ein bestehendes Bild auszuwählen.
+  - Bekanntes Restproblem:
+        - Beim Upload sehr großer Bilder (insbesondere von modernen Smartphone-Kameras) kann folgender Fehler auftreten:
+          - ```
+            AxiosError: Request failed with status code 413
+            ```
+  - Lösungsansatz und Zeitmangel:
+    - Es wurde versucht, die Bilder clientseitig vor dem Hochladen zu komprimieren und zu verkleinern, um die Dateigröße zu reduzieren. Aufgrund der zeitlichen Komplexität einer stabilen Implementierung dieser Komprimierung in Streamlit konnte dieser Ansatz jedoch nicht finalisiert werden.
+  - Aktueller Status:
+    - Das Hochladen von Bildern von einem Desktop-Computer oder kleineren Bilddateien von Mobilgeräten funktioniert zuverlässig. Der Upload sehr großer, direkt mit der Handykamera aufgenommener Bilder kann weiterhin zu einem 413-Fehler führen.
 #### Streamlit Multipage-Handling
 - Am Anfang hatte ich Probleme mit switching_page in Streamlit, da dabei viele Fehler auftraten. Deshalb habe ich alle Seiten in einer Datei (app.py) zusammengefasst, was jedoch unpraktisch ist.
 #### Erweiterte Account-Funktionen
