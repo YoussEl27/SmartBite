@@ -39,13 +39,14 @@ def analyze_image_with_phi4(uploaded_file):
         img = Image.open(uploaded_file)
 
         max_size = (800, 800)
-        img.thumbnail(max_size)
+        img.thumbnail(max_size, Image.Resampling.LANCZOS)
 
         img_byte_arr = io.BytesIO()
         img.convert("RGB").save(img_byte_arr, format="JPEG", quality=80)
         img_byte_arr = img_byte_arr.getvalue()
 
-        encoded_image = base64.b64encode(img_byte_arr).decode('utf-8')
+        encoded_image = base64.b64encode(img_byte_arr).decode("utf-8")
+        image_uri = f"data:image/jpeg;base64,{encoded_image}"
 
         # API call to OpenAI
         chat_completion = client.chat.completions.create(
@@ -54,7 +55,7 @@ def analyze_image_with_phi4(uploaded_file):
                 {
                     "role": "user",
                     "content": [
-                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{encoded_image}" }},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_uri}" }},
                         {"type": "text", "text":
                             "Analyze the image and return only the unique name of the food or brand. "
                             "Respond only with the product or brand name, without additional words, without fantasy names. "

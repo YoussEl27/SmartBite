@@ -14,7 +14,7 @@ SmartBite ist eine moderne, KI-gestützte Webanwendung zur automatisierten Kalor
 - Nährungswerte der Gerichte können gespeichert werden.
 
 ## Architekturübersicht
-![Architekturübersicht.png](Architektur%C3%BCbersicht.png)
+![img.png](img.png)
 
 ## Dienste
 
