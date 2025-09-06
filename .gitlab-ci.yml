@@ -55,7 +55,7 @@ build-frontend:
     - docker push $CI_REGISTRY_IMAGE/frontend:latest
   image: docker:24.0
   services:
-    - docker:24.0-dind
+    - docker:24.0-dind #
 
 
 deploy-backend:
