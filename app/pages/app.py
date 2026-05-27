@@ -212,18 +212,15 @@ def show_login():
 def show_home():
     st.title("🍽️ Calorie Check with OpenFoodFacts")
 
-    tab1, tab2 = st.tabs(["📸 Camera", "📁 Upload Image"])
-
+    tab1 = st.tabs(["Upload Image or take a Foto"])
     with tab1:
-        camera_photo = st.camera_input("Take a picture of your food")
-    with tab2:
         uploaded_file = st.file_uploader("Choose an image",
                                          type=['jpg', 'jpeg', 'png'],
                                          accept_multiple_files=False,
                                          help="Max. 2MB für beste Performance")
 
     # Use whichever file is provided
-    final_file = camera_photo if camera_photo is not None else uploaded_file
+    final_file = uploaded_file
 
     if final_file is None:
         st.warning("Please take a picture or upload one.")
