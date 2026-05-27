@@ -9,7 +9,7 @@ import io
 import base64
 from PIL import Image
 
-BASE_URL = os.getenv("BACKEND_URL", "http://host.docker.internal:8000")
+BASE_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 # Prepare OpenAI client
 client = openai.OpenAI(
@@ -212,8 +212,8 @@ def show_login():
 def show_home():
     st.title("🍽️ Calorie Check with OpenFoodFacts")
 
-    tab1 = st.tabs(["Upload Image or take a Foto"])
-    with tab1:
+    tabs = st.tabs(["Upload Image or take a Foto"])
+    with tabs[0]:
         uploaded_file = st.file_uploader("Choose an image",
                                          type=['jpg', 'jpeg', 'png'],
                                          accept_multiple_files=False,
