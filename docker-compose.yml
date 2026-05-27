@@ -6,15 +6,16 @@ services:
       context: ./Backend
     container_name: fastapi_backend
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=Ysf@2002
-      - POSTGRES_DB=postgres
-      - DATABASE_URL=postgresql+psycopg2://postgres:${POSTGRES_PASSWORD}@db:5432/postgres
+      - POSTGRES_USER=POSTGRES_USER
+      - POSTGRES_PASSWORD=POSTGRES_PASSWORD
+      - POSTGRES_DB=POSTGRES_DB
+      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     image: git.mylab.th-luebeck.de:4181/webtech/ss2025/youssef-elkettani/backend:latest
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   frontend:
     build:
@@ -30,13 +31,18 @@ services:
     image: postgres:16
     container_name: postgres_db
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=Ysf@2002
-      - POSTGRES_DB=postgres
+      - POSTGRES_USER=POSTGRES_USER
+      - POSTGRES_PASSWORD=POSTGRES_PASSWORD
+      - POSTGRES_DB=POSTGRES_DB
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

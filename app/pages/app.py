@@ -38,15 +38,19 @@ def analyze_image_with_phi4(uploaded_file):
     try:
         img = Image.open(uploaded_file)
 
+        # Resize for better performance (max 1024px)
+        if img.width > 1024 or img.height > 1024:
+            img.thumbnail((1024, 1024))
+
         img_byte_arr = io.BytesIO()
-        img.save(img_byte_arr, format=img.format if img.format else 'JPEG')
+        img.save(img_byte_arr, format="JPEG", quality=80)
         img_byte_arr = img_byte_arr.getvalue()
 
         encoded_image = base64.b64encode(img_byte_arr).decode('utf-8')
 
         # API call to OpenAI
         chat_completion = client.chat.completions.create(
-            model="phi-4-multimodal",
+            model="chat-fast",
             messages=[
                 {
                     "role": "user",
@@ -79,33 +83,49 @@ def analyze_image_with_phi4(uploaded_file):
 
 # API
 def get_nutrition_info(food_name):
+    if not food_name:
+        return None
+
     url = "https://world.openfoodfacts.org/cgi/search.pl"
     params = {
         "search_terms": food_name,
         "search_simple": 1,
         "action": "process",
         "json": 1,
-        "page_size": 3
+        "page_size": 3,
+        "fields": "product_name,nutriments"
+    }
+    headers = {
+        "User-Agent": "SmartBiteApp - Version 1.0 - contact@smartbite.com"
     }
 
     try:
-        response = requests.get(url, params=params)
+        response = requests.get(url, params=params, headers=headers, timeout=10)
+        response.raise_for_status()
         data = response.json()
 
-        if data["products"]:
+        if data.get("products"):
             first = data["products"][0]
             nutriments = first.get("nutriments", {})
+
+            def get_val(key):
+                val = nutriments.get(key, 0.0)
+                try:
+                    return float(val)
+                except (ValueError, TypeError):
+                    return 0.0
+
             return {
-                "Meal_name"    : first.get("product_name", "Unknown"),
-                "Calories": nutriments.get("energy-kcal_100g", "Not specified"),
-                "Protein": nutriments.get("proteins_100g", "Not specified"),
-                "Carbs": nutriments.get("carbohydrates_100g", "Not specified"),
-                "Fat"     : nutriments.get("fat_100g", "Not specified"),
-                "Sugar"   : nutriments.get("sugars_100g", "Not specified"),
-                "Salt"    : nutriments.get("salt_100g", "Not specified"),
+                "Meal_name": first.get("product_name", food_name),
+                "Calories": get_val("energy-kcal_100g"),
+                "Protein": get_val("proteins_100g"),
+                "Carbs": get_val("carbohydrates_100g"),
+                "Fat": get_val("fat_100g"),
+                "Sugar": get_val("sugars_100g"),
+                "Salt": get_val("salt_100g"),
             }
-    except:
-        pass
+    except Exception as e:
+        print(f"OpenFoodFacts API Error: {e}")
     return None
 
 
@@ -148,12 +168,12 @@ def show_login():
         username = st.text_input("Username")
         password = st.text_input("Password", type="password")
 
-        col1, col2, clo3 = st.columns(3)
+        col1, col2, col3 = st.columns(3)
         with col1:
             login_button = st.form_submit_button("Login" ,use_container_width=True, type="secondary")
         with col2:
             signUp_button = st.form_submit_button("Sign Up", use_container_width=True, type="secondary")
-        with clo3:
+        with col3:
             forgot_button = st.form_submit_button("Forgot Password?", use_container_width=True, type="secondary")
 
     if login_button:
@@ -192,23 +212,34 @@ def show_login():
 def show_home():
     st.title("🍽️ Calorie Check with OpenFoodFacts")
 
-    uploaded_file = st.file_uploader("Choose an image",
-                                     type=['jpg', 'jpeg', 'png'],
-                                     accept_multiple_files=False,
-                                     help="Max. 2MB für beste Performance")
+    tab1, tab2 = st.tabs(["📸 Camera", "📁 Upload Image"])
 
-    if uploaded_file is None:
-        st.warning("Please take a picture.")
+    with tab1:
+        camera_photo = st.camera_input("Take a picture of your food")
+    with tab2:
+        uploaded_file = st.file_uploader("Choose an image",
+                                         type=['jpg', 'jpeg', 'png'],
+                                         accept_multiple_files=False,
+                                         help="Max. 2MB für beste Performance")
+
+    # Use whichever file is provided
+    final_file = camera_photo if camera_photo is not None else uploaded_file
+
+    if final_file is None:
+        st.warning("Please take a picture or upload one.")
 
     if "nutrition_result" not in st.session_state:
         st.session_state.nutrition_result = None
 
     if st.button("Show nutritional values"):
-        result = get_nutrition_info(analyze_image_with_phi4(uploaded_file))
-        if result:
-            st.session_state.nutrition_result = result
+        if final_file is not None:
+            result = get_nutrition_info(analyze_image_with_phi4(final_file))
+            if result:
+                st.session_state.nutrition_result = result
+            else:
+                st.warning("No matching data found.")
         else:
-            st.warning("No matching data found.")
+            st.warning("Please upload or take a picture first.")
             return
 
     if st.session_state.nutrition_result:
@@ -265,9 +296,8 @@ def show_history():
                 headers=headers
             )
             if response.status_code == 200:
-                #st.write("Response:", response.status_code, response.json())
                 data = response.json()
-                if len(data) == 0:
+                if not data:
                     st.info("No meals saved yet.")
                     return
                 df = pd.DataFrame(data)
@@ -276,7 +306,7 @@ def show_history():
                 return
         except requests.exceptions.RequestException:
             st.error("❌ Connection to server failed.")
-
+            return
 
     st.subheader("📋 My meals")
     for index, row in df.iterrows():
